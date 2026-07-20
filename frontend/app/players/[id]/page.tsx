@@ -1,0 +1,135 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import type { Data } from "plotly.js";
+import { BrainCircuit, ChartNoAxesCombined, Sparkles, Target } from "lucide-react";
+import Link from "next/link";
+import { useParams, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
+
+import { GrowthChart, LineChart, PcaChart } from "@/components/charts";
+import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
+import { api } from "@/lib/api";
+import { toChartNumber } from "@/lib/analytics";
+import { formatMetric } from "@/lib/metrics";
+import type { AnalyticsRole } from "@/types/api";
+
+const labels: Record<string, string> = {
+  batting_average: "AVG", on_base_percentage: "OBP", slugging_percentage: "SLG", on_base_plus_slugging: "OPS", home_runs: "HR", runs_batted_in: "RBI", stolen_bases: "SB", walks: "BB", strikeouts: "SO", earned_run_average: "ERA", innings_pitched_outs: "IP Outs", saves: "SV", holds: "HLD", peak_age: "Peak Age", peak_ops: "Peak OPS", peak_home_runs: "Peak HR", peak_era: "Peak ERA", peak_strikeouts: "Peak SO",
+};
+
+const countMetrics = new Set(["home_runs", "strikeouts", "walks_allowed"]);
+
+export default function PlayerDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const playerId = Number(id);
+  const [selectedRole, setSelectedRole] = useState<AnalyticsRole | null>(null);
+  const player = useQuery({ queryKey: ["player", playerId], queryFn: () => api.player(playerId), enabled: Number.isFinite(playerId) });
+  const seasons = useQuery({ queryKey: ["seasons", playerId], queryFn: () => api.seasons(playerId), enabled: Number.isFinite(playerId) });
+
+  const requestedRole = searchParams.get("role");
+  const availableRequestedRole: AnalyticsRole | null = requestedRole === "pitching" && seasons.data?.pitching.length
+    ? "pitching"
+    : requestedRole === "batting" && seasons.data?.batting.length
+      ? "batting"
+      : null;
+  const role: AnalyticsRole = selectedRole ?? availableRequestedRole ?? (seasons.data?.batting.length === 0 && seasons.data.pitching.length > 0 ? "pitching" : "batting");
+  const rows = useMemo(() => role === "batting" ? seasons.data?.batting ?? [] : seasons.data?.pitching ?? [], [role, seasons.data]);
+  const latest = rows.at(-1);
+  const latestSeason = latest?.season;
+  const growthMetrics = role === "batting" ? "batting_average,on_base_plus_slugging,home_runs" : "earned_run_average,strikeouts,walks_allowed";
+  const prediction = useQuery({ queryKey: ["prediction", role, playerId], queryFn: () => api.prediction(role, playerId), enabled: latestSeason === 2025 });
+  const growth = useQuery({ queryKey: ["growth", role, playerId], queryFn: () => api.growth(role, playerId, growthMetrics), enabled: rows.length > 0 });
+  const peak = useQuery({ queryKey: ["peak", role, playerId], queryFn: () => api.peak(role, playerId), enabled: rows.length >= 3 });
+  const similar = useQuery({ queryKey: ["similar", role, playerId, latestSeason], queryFn: () => api.similar(role, playerId, latestSeason), enabled: Boolean(latestSeason) });
+
+  if (player.isLoading || seasons.isLoading) return <div className="page"><LoadingPanel /></div>;
+  if (player.isError || seasons.isError) return <div className="page"><ErrorPanel error={player.error ?? seasons.error} /></div>;
+
+  const chartMetrics = role === "batting" ? ["batting_average", "on_base_plus_slugging", "home_runs"] : ["earned_run_average", "strikeouts", "walks_allowed"];
+  const traces: Data[] = chartMetrics.map((metric) => ({
+    type: "scatter",
+    mode: "lines+markers",
+    name: labels[metric],
+    x: rows.map((row) => row.season),
+    y: rows.map((row) => toChartNumber(row[metric])),
+    yaxis: countMetrics.has(metric) ? "y2" : "y",
+    connectgaps: false,
+    line: { width: 3 },
+  }));
+  const latestMetrics = role === "batting" ? ["batting_average", "on_base_plus_slugging", "home_runs", "runs_batted_in"] : ["earned_run_average", "innings_pitched_outs", "strikeouts", "walks_allowed"];
+
+  return (
+    <div className="page">
+      <header className="player-heading">
+        <div>
+          <span className="eyebrow">PLAYER INTELLIGENCE · {latestSeason ?? "—"}</span>
+          <h1>{player.data?.player_name}</h1>
+          <p className="muted">{player.data?.birth_date} · {latest?.team ?? "팀 정보 없음"}</p>
+        </div>
+        <div className="tabs">
+          {seasons.data?.batting.length ? <button className={role === "batting" ? "active" : ""} onClick={() => setSelectedRole("batting")}>타자</button> : null}
+          {seasons.data?.pitching.length ? <button className={role === "pitching" ? "active" : ""} onClick={() => setSelectedRole("pitching")}>투수</button> : null}
+        </div>
+      </header>
+
+      <section className="metric-grid">
+        {latestMetrics.map((metric) => {
+          const value = latest?.[metric];
+          return <MetricCard key={metric} label={labels[metric]} value={formatMetric(metric, value == null ? null : Number(value))} hint={`${latestSeason ?? ""} 시즌`} />;
+        })}
+      </section>
+
+      <section className="section two-column">
+        <div className="panel">
+          <div className="panel-header"><h2>커리어 기록</h2><ChartNoAxesCombined size={20} /></div>
+          <LineChart traces={traces} />
+        </div>
+        <div className="panel">
+          <div className="panel-header"><h2>다음 시즌 AI 예측</h2><BrainCircuit size={20} /></div>
+          {latestSeason !== 2025 ? <div className="state-panel"><p>2025 시즌 기록이 있는 현역 선수에게 제공됩니다.</p></div> : prediction.isLoading ? <LoadingPanel /> : prediction.isError ? <ErrorPanel error={prediction.error} /> : (
+            <div className="metric-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+              {prediction.data?.predictions.map((item) => <MetricCard key={item.target} label={labels[item.target] ?? item.target} value={formatMetric(item.target, item.prediction)} hint={`이전 ${formatMetric(item.target, item.previous_season_value)}`} />)}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="section panel">
+        <div className="panel-header"><div><span className="eyebrow">CAREER TRAJECTORY</span><h2>성장곡선과 변곡점</h2></div><ChartNoAxesCombined size={20} /></div>
+        {growth.isLoading ? <LoadingPanel /> : growth.isError ? <ErrorPanel error={growth.error} /> : growth.data && <GrowthChart points={growth.data.curves} />}
+      </section>
+
+      <section className="section two-column">
+        <div className="panel">
+          <div className="panel-header"><h2>전성기 예측</h2><Target size={20} /></div>
+          {peak.isLoading ? <LoadingPanel /> : peak.isError ? <ErrorPanel error={peak.error} /> : (
+            <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+              {Object.entries(peak.data?.predictions ?? {}).map(([key, value]) => {
+                const detail = peak.data?.model_details[key];
+                const hint = detail?.uses_baseline_fallback
+                  ? `기준 모델 적용 · ML ${detail.validation_mae?.toFixed(3)} / 기준 ${detail.baseline_mae?.toFixed(3)}`
+                  : `${detail?.deployed_model ?? "ML"} · MAE ${detail?.validation_mae?.toFixed(3) ?? "—"}`;
+                return <MetricCard key={key} label={labels[key] ?? key} value={formatMetric(key, value)} hint={hint} />;
+              })}
+            </div>
+          )}
+        </div>
+        <div className="panel">
+          <div className="panel-header"><h2>유사 선수 TOP10</h2><Sparkles size={20} /></div>
+          {similar.isLoading ? <LoadingPanel /> : similar.isError ? <ErrorPanel error={similar.error} /> : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead><tr><th>#</th><th>선수</th><th>유사도</th></tr></thead>
+                <tbody>{similar.data?.recommendations.map((item) => <tr key={item.player_id}><td className="rank">{item.rank}</td><td><Link href={`/players/${item.player_id}?role=${role}`}>{item.player_name}</Link><ul className="reason-list">{item.reasons.slice(0, 1).map((reason) => <li key={reason}>{reason}</li>)}</ul></td><td className="score">{(item.similarity_score * 100).toFixed(1)}</td></tr>)}</tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {similar.data && <section className="section panel"><div className="panel-header"><h2>플레이 스타일 PCA 맵</h2><span className="muted">기준 선수와 추천 TOP10</span></div><PcaChart data={similar.data} /></section>}
+    </div>
+  );
+}

@@ -1,0 +1,255 @@
+{
+  "generated_at_utc": "2026-07-20T11:59:48.997243+00:00",
+  "event_rule": "league consecutive-season performance change p10/p90",
+  "sample_rule": {
+    "batting_pa": 100,
+    "pitching_outs": 90
+  },
+  "sources": {
+    "batting": {
+      "path": "batting_stats_clean.csv",
+      "sha256": "7c25d65165377fb6fbcb3d24f9fcc83b34c20f97b6d4ef029e65e589b9b352bb"
+    },
+    "pitching": {
+      "path": "pitching_stats_clean.csv",
+      "sha256": "98f28286f9379f902be8870222867d3c1b070bfb6dd4160a10306c51d1b73fe2"
+    }
+  },
+  "roles": {
+    "batting": {
+      "reference_player_id": 74540,
+      "career_season_count": 22,
+      "curve_point_count": 198,
+      "event_count": 23,
+      "events_by_metric": [
+        {
+          "metric": "batting_average",
+          "event": "breakout",
+          "count": 2
+        },
+        {
+          "metric": "home_runs",
+          "event": "breakout",
+          "count": 3
+        },
+        {
+          "metric": "home_runs",
+          "event": "decline",
+          "count": 4
+        },
+        {
+          "metric": "on_base_percentage",
+          "event": "breakout",
+          "count": 1
+        },
+        {
+          "metric": "on_base_percentage",
+          "event": "decline",
+          "count": 1
+        },
+        {
+          "metric": "on_base_plus_slugging",
+          "event": "breakout",
+          "count": 2
+        },
+        {
+          "metric": "runs_batted_in",
+          "event": "breakout",
+          "count": 3
+        },
+        {
+          "metric": "runs_batted_in",
+          "event": "decline",
+          "count": 1
+        },
+        {
+          "metric": "slugging_percentage",
+          "event": "breakout",
+          "count": 2
+        },
+        {
+          "metric": "strikeouts",
+          "event": "breakout",
+          "count": 1
+        },
+        {
+          "metric": "walks",
+          "event": "breakout",
+          "count": 1
+        },
+        {
+          "metric": "walks",
+          "event": "decline",
+          "count": 2
+        }
+      ],
+      "league_thresholds": [
+        {
+          "metric": "batting_average",
+          "metric_label": "타율",
+          "sample_count": 3749,
+          "decline_threshold": -0.058,
+          "breakout_threshold": 0.050000000000000024
+        },
+        {
+          "metric": "on_base_percentage",
+          "metric_label": "출루율",
+          "sample_count": 3749,
+          "decline_threshold": -0.06,
+          "breakout_threshold": 0.05499999999999999
+        },
+        {
+          "metric": "slugging_percentage",
+          "metric_label": "장타율",
+          "sample_count": 3749,
+          "decline_threshold": -0.10699999999999998,
+          "breakout_threshold": 0.09000000000000002
+        },
+        {
+          "metric": "on_base_plus_slugging",
+          "metric_label": "OPS",
+          "sample_count": 3749,
+          "decline_threshold": -0.15800000000000003,
+          "breakout_threshold": 0.135
+        },
+        {
+          "metric": "home_runs",
+          "metric_label": "홈런",
+          "sample_count": 3749,
+          "decline_threshold": -7.0,
+          "breakout_threshold": 7.0
+        },
+        {
+          "metric": "runs_batted_in",
+          "metric_label": "타점",
+          "sample_count": 3749,
+          "decline_threshold": -27.0,
+          "breakout_threshold": 25.0
+        },
+        {
+          "metric": "stolen_bases",
+          "metric_label": "도루",
+          "sample_count": 3749,
+          "decline_threshold": -8.0,
+          "breakout_threshold": 7.0
+        },
+        {
+          "metric": "walks",
+          "metric_label": "볼넷",
+          "sample_count": 3749,
+          "decline_threshold": -20.0,
+          "breakout_threshold": 20.0
+        },
+        {
+          "metric": "strikeouts",
+          "metric_label": "삼진",
+          "sample_count": 3749,
+          "decline_threshold": -26.0,
+          "breakout_threshold": 27.0
+        }
+      ]
+    },
+    "pitching": {
+      "reference_player_id": 89770,
+      "career_season_count": 21,
+      "curve_point_count": 126,
+      "event_count": 36,
+      "events_by_metric": [
+        {
+          "metric": "holds",
+          "event": "breakout",
+          "count": 1
+        },
+        {
+          "metric": "holds",
+          "event": "decline",
+          "count": 1
+        },
+        {
+          "metric": "innings_pitched_outs",
+          "event": "breakout",
+          "count": 6
+        },
+        {
+          "metric": "innings_pitched_outs",
+          "event": "decline",
+          "count": 4
+        },
+        {
+          "metric": "saves",
+          "event": "breakout",
+          "count": 4
+        },
+        {
+          "metric": "saves",
+          "event": "decline",
+          "count": 4
+        },
+        {
+          "metric": "strikeouts",
+          "event": "breakout",
+          "count": 3
+        },
+        {
+          "metric": "strikeouts",
+          "event": "decline",
+          "count": 4
+        },
+        {
+          "metric": "walks_allowed",
+          "event": "breakout",
+          "count": 5
+        },
+        {
+          "metric": "walks_allowed",
+          "event": "decline",
+          "count": 4
+        }
+      ],
+      "league_thresholds": [
+        {
+          "metric": "earned_run_average",
+          "metric_label": "ERA",
+          "sample_count": 2741,
+          "decline_threshold": -2.21,
+          "breakout_threshold": 1.7799999999999998
+        },
+        {
+          "metric": "innings_pitched_outs",
+          "metric_label": "이닝(아웃카운트)",
+          "sample_count": 2741,
+          "decline_threshold": -181.0,
+          "breakout_threshold": 149.0
+        },
+        {
+          "metric": "strikeouts",
+          "metric_label": "탈삼진",
+          "sample_count": 2741,
+          "decline_threshold": -43.0,
+          "breakout_threshold": 38.0
+        },
+        {
+          "metric": "walks_allowed",
+          "metric_label": "허용 볼넷",
+          "sample_count": 2741,
+          "decline_threshold": -19.0,
+          "breakout_threshold": 23.0
+        },
+        {
+          "metric": "saves",
+          "metric_label": "세이브",
+          "sample_count": 2741,
+          "decline_threshold": -4.0,
+          "breakout_threshold": 3.0
+        },
+        {
+          "metric": "holds",
+          "metric_label": "홀드",
+          "sample_count": 2741,
+          "decline_threshold": -3.0,
+          "breakout_threshold": 5.0
+        }
+      ]
+    }
+  }
+}

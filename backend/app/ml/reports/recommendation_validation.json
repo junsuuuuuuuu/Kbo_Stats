@@ -1,0 +1,75 @@
+{
+  "generated_at_utc": "2026-07-20T11:56:13.339892+00:00",
+  "season": 2025,
+  "algorithm": "standard scaling + cosine similarity + KNN + PCA",
+  "sources": {
+    "batting": {
+      "path": "batting_stats_clean.csv",
+      "sha256": "7c25d65165377fb6fbcb3d24f9fcc83b34c20f97b6d4ef029e65e589b9b352bb"
+    },
+    "pitching": {
+      "path": "pitching_stats_clean.csv",
+      "sha256": "98f28286f9379f902be8870222867d3c1b070bfb6dd4160a10306c51d1b73fe2"
+    }
+  },
+  "eligible_candidate_counts": {
+    "batting": 155,
+    "pitching": 139
+  },
+  "condition_examples": {
+    "age_lte_25_and_ops_gte_0_8": 9,
+    "era_lte_4_and_strikeouts_gte_50": 49
+  },
+  "similarity_examples": {
+    "batting": {
+      "reference_player_id": 52001,
+      "recommendation_count": 10,
+      "recommended_player_ids": [
+        53123,
+        62404,
+        52591,
+        65357,
+        68050,
+        76232,
+        67449,
+        54529,
+        69102,
+        53827
+      ],
+      "similarity_score_range": {
+        "minimum": 0.5389203633511154,
+        "maximum": 0.6011432305637732
+      },
+      "pca_point_count": 11,
+      "pca_explained_variance_ratio": [
+        0.5350629655535126,
+        0.14870622595933466
+      ]
+    },
+    "pitching": {
+      "reference_player_id": 51897,
+      "recommendation_count": 10,
+      "recommended_player_ids": [
+        53754,
+        65949,
+        54263,
+        50662,
+        52060,
+        62528,
+        50106,
+        52330,
+        63950,
+        65062
+      ],
+      "similarity_score_range": {
+        "minimum": 0.4438697276344046,
+        "maximum": 0.6596738767121862
+      },
+      "pca_point_count": 11,
+      "pca_explained_variance_ratio": [
+        0.4488469647217964,
+        0.16405144384667006
+      ]
+    }
+  }
+}

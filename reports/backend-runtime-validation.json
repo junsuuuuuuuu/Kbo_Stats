@@ -1,0 +1,40 @@
+{
+  "database": {
+    "engine": "MySQL Community Server",
+    "version": "8.0.43",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "kbo_stats",
+    "alembic_version": "0001_core"
+  },
+  "cardinality": {
+    "players": 3506,
+    "player_source_profiles": 3532,
+    "teams": 23,
+    "batting_season_stats": 9703,
+    "pitching_season_stats": 7625
+  },
+  "import_batches": [
+    {
+      "dataset": "BATTING",
+      "status": "SUCCEEDED",
+      "source_rows": 9703,
+      "imported_rows": 9703
+    },
+    {
+      "dataset": "PITCHING",
+      "status": "SUCCEEDED",
+      "source_rows": 7625,
+      "imported_rows": 7625
+    }
+  ],
+  "api_smoke_test": {
+    "player_search_status": 200,
+    "player_detail_status": 200,
+    "player_seasons_status": 200,
+    "request_id_header_present": true,
+    "sample_player_id": 52605,
+    "sample_latest_season": 2025
+  },
+  "status": "passed"
+}

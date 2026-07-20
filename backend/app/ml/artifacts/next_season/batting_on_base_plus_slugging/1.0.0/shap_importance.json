@@ -1,0 +1,490 @@
+[
+  {
+    "feature": "on_base_plus_slugging_mean_3y",
+    "mean_abs_shap": 0.024523958381452805
+  },
+  {
+    "feature": "slugging_percentage_mean_3y",
+    "mean_abs_shap": 0.01663217887123309
+  },
+  {
+    "feature": "on_base_plus_slugging_lag_0",
+    "mean_abs_shap": 0.005320565511845391
+  },
+  {
+    "feature": "runs_batted_in_mean_3y",
+    "mean_abs_shap": 0.005274648595760894
+  },
+  {
+    "feature": "home_runs_lag_0",
+    "mean_abs_shap": 0.0032376507070981204
+  },
+  {
+    "feature": "slugging_percentage_lag_0",
+    "mean_abs_shap": 0.0031362139361414605
+  },
+  {
+    "feature": "season",
+    "mean_abs_shap": 0.0029927011206002147
+  },
+  {
+    "feature": "home_runs_mean_3y",
+    "mean_abs_shap": 0.0028046615591568167
+  },
+  {
+    "feature": "runs_batted_in_lag_0",
+    "mean_abs_shap": 0.002527083189953514
+  },
+  {
+    "feature": "walks_lag_0",
+    "mean_abs_shap": 0.0022692365900872013
+  },
+  {
+    "feature": "walks_mean_3y",
+    "mean_abs_shap": 0.0017934493683236996
+  },
+  {
+    "feature": "batting_average_mean_3y",
+    "mean_abs_shap": 0.001730064779137875
+  },
+  {
+    "feature": "position_C",
+    "mean_abs_shap": 0.001692027331666539
+  },
+  {
+    "feature": "runs_lag_0",
+    "mean_abs_shap": 0.0014027011188638549
+  },
+  {
+    "feature": "age_mean_3y",
+    "mean_abs_shap": 0.0014020044519611374
+  },
+  {
+    "feature": "age_lag_2",
+    "mean_abs_shap": 0.0013874511973108912
+  },
+  {
+    "feature": "on_base_percentage_lag_0",
+    "mean_abs_shap": 0.0013773738752390942
+  },
+  {
+    "feature": "age_lag_1",
+    "mean_abs_shap": 0.0013198335636105869
+  },
+  {
+    "feature": "age_lag_0",
+    "mean_abs_shap": 0.0013010237479140138
+  },
+  {
+    "feature": "slugging_percentage_lag_1",
+    "mean_abs_shap": 0.0012530794691264216
+  },
+  {
+    "feature": "position_OF",
+    "mean_abs_shap": 0.001131175518948503
+  },
+  {
+    "feature": "games_mean_3y",
+    "mean_abs_shap": 0.0011252387825862115
+  },
+  {
+    "feature": "plate_appearances_lag_0",
+    "mean_abs_shap": 0.001054960469397704
+  },
+  {
+    "feature": "on_base_percentage_mean_3y",
+    "mean_abs_shap": 0.0009720515111008036
+  },
+  {
+    "feature": "batting_average_lag_0",
+    "mean_abs_shap": 0.000899416634172717
+  },
+  {
+    "feature": "games_lag_0",
+    "mean_abs_shap": 0.000898326417074305
+  },
+  {
+    "feature": "on_base_percentage_lag_1",
+    "mean_abs_shap": 0.0008953411382920468
+  },
+  {
+    "feature": "on_base_plus_slugging_lag_1",
+    "mean_abs_shap": 0.0008616042814863954
+  },
+  {
+    "feature": "games_lag_1",
+    "mean_abs_shap": 0.0008464192020599774
+  },
+  {
+    "feature": "home_runs_trend_3y",
+    "mean_abs_shap": 0.000844309577377368
+  },
+  {
+    "feature": "strikeouts_trend_3y",
+    "mean_abs_shap": 0.0008364762230665244
+  },
+  {
+    "feature": "on_base_percentage_lag_2",
+    "mean_abs_shap": 0.0008209523737904269
+  },
+  {
+    "feature": "walks_lag_2",
+    "mean_abs_shap": 0.0008009660213205773
+  },
+  {
+    "feature": "batting_average_lag_1",
+    "mean_abs_shap": 0.0007980566726815856
+  },
+  {
+    "feature": "runs_batted_in_lag_1",
+    "mean_abs_shap": 0.0007300857339622328
+  },
+  {
+    "feature": "games_lag_2",
+    "mean_abs_shap": 0.0007038651893300718
+  },
+  {
+    "feature": "walks_lag_1",
+    "mean_abs_shap": 0.0006996343927058763
+  },
+  {
+    "feature": "hits_lag_0",
+    "mean_abs_shap": 0.0006923270709747864
+  },
+  {
+    "feature": "slugging_percentage_trend_3y",
+    "mean_abs_shap": 0.0006616051846826369
+  },
+  {
+    "feature": "strikeouts_lag_2",
+    "mean_abs_shap": 0.000632490149616433
+  },
+  {
+    "feature": "runs_batted_in_lag_2",
+    "mean_abs_shap": 0.0006223918161789062
+  },
+  {
+    "feature": "games_trend_3y",
+    "mean_abs_shap": 0.0006194438311342569
+  },
+  {
+    "feature": "runs_batted_in_trend_3y",
+    "mean_abs_shap": 0.0005961229485933902
+  },
+  {
+    "feature": "at_bats_lag_0",
+    "mean_abs_shap": 0.0005571277772738113
+  },
+  {
+    "feature": "slugging_percentage_lag_2",
+    "mean_abs_shap": 0.0005221129391245967
+  },
+  {
+    "feature": "strikeouts_mean_3y",
+    "mean_abs_shap": 0.0005050152565178926
+  },
+  {
+    "feature": "strikeouts_lag_0",
+    "mean_abs_shap": 0.0004999184320436022
+  },
+  {
+    "feature": "batting_average_lag_2",
+    "mean_abs_shap": 0.00046556967025642446
+  },
+  {
+    "feature": "runs_mean_3y",
+    "mean_abs_shap": 0.00045736007308448
+  },
+  {
+    "feature": "batting_average_trend_3y",
+    "mean_abs_shap": 0.0004571265294213265
+  },
+  {
+    "feature": "walks_trend_3y",
+    "mean_abs_shap": 0.00045453647550227597
+  },
+  {
+    "feature": "home_runs_lag_1",
+    "mean_abs_shap": 0.00043982717003181925
+  },
+  {
+    "feature": "plate_appearances_mean_3y",
+    "mean_abs_shap": 0.0004370575213528019
+  },
+  {
+    "feature": "strikeouts_lag_1",
+    "mean_abs_shap": 0.0004271766696348109
+  },
+  {
+    "feature": "on_base_plus_slugging_trend_3y",
+    "mean_abs_shap": 0.000404863043485839
+  },
+  {
+    "feature": "on_base_percentage_trend_3y",
+    "mean_abs_shap": 0.000394757570758412
+  },
+  {
+    "feature": "runs_trend_3y",
+    "mean_abs_shap": 0.00038617436449829015
+  },
+  {
+    "feature": "runs_lag_2",
+    "mean_abs_shap": 0.00037523923127249733
+  },
+  {
+    "feature": "stolen_bases_mean_3y",
+    "mean_abs_shap": 0.00035725084718597636
+  },
+  {
+    "feature": "at_bats_mean_3y",
+    "mean_abs_shap": 0.0003519587356289737
+  },
+  {
+    "feature": "hits_mean_3y",
+    "mean_abs_shap": 0.0003465644948100425
+  },
+  {
+    "feature": "stolen_bases_lag_0",
+    "mean_abs_shap": 0.00033965409218658524
+  },
+  {
+    "feature": "at_bats_lag_2",
+    "mean_abs_shap": 0.00032567889390105976
+  },
+  {
+    "feature": "stolen_bases_lag_2",
+    "mean_abs_shap": 0.00031949522738961185
+  },
+  {
+    "feature": "stolen_bases_lag_1",
+    "mean_abs_shap": 0.00031182694663507823
+  },
+  {
+    "feature": "on_base_plus_slugging_lag_2",
+    "mean_abs_shap": 0.0003025011032258443
+  },
+  {
+    "feature": "runs_lag_1",
+    "mean_abs_shap": 0.0002876261179429784
+  },
+  {
+    "feature": "home_runs_lag_2",
+    "mean_abs_shap": 0.0002811418620026721
+  },
+  {
+    "feature": "plate_appearances_lag_2",
+    "mean_abs_shap": 0.0002736770125916747
+  },
+  {
+    "feature": "at_bats_lag_1",
+    "mean_abs_shap": 0.00027321349870271347
+  },
+  {
+    "feature": "stolen_bases_trend_3y",
+    "mean_abs_shap": 0.0002521611388674534
+  },
+  {
+    "feature": "hits_lag_1",
+    "mean_abs_shap": 0.0002493508946237892
+  },
+  {
+    "feature": "plate_appearances_trend_3y",
+    "mean_abs_shap": 0.00024858769666616707
+  },
+  {
+    "feature": "hits_trend_3y",
+    "mean_abs_shap": 0.0002477657587289458
+  },
+  {
+    "feature": "hits_lag_2",
+    "mean_abs_shap": 0.0002443400496537285
+  },
+  {
+    "feature": "plate_appearances_lag_1",
+    "mean_abs_shap": 0.00024314676365790096
+  },
+  {
+    "feature": "at_bats_trend_3y",
+    "mean_abs_shap": 0.00021634135187521608
+  },
+  {
+    "feature": "position_1B",
+    "mean_abs_shap": 0.00021627741659303488
+  },
+  {
+    "feature": "team_삼성",
+    "mean_abs_shap": 0.00020023979298567805
+  },
+  {
+    "feature": "position_2B",
+    "mean_abs_shap": 9.903528703404684e-05
+  },
+  {
+    "feature": "team_OB",
+    "mean_abs_shap": 8.863355645952211e-05
+  },
+  {
+    "feature": "team_넥센",
+    "mean_abs_shap": 8.418106621690144e-05
+  },
+  {
+    "feature": "position_DH",
+    "mean_abs_shap": 8.028428633743123e-05
+  },
+  {
+    "feature": "team_태평양",
+    "mean_abs_shap": 6.784267231075219e-05
+  },
+  {
+    "feature": "position_SS",
+    "mean_abs_shap": 6.781017143308941e-05
+  },
+  {
+    "feature": "team_해태",
+    "mean_abs_shap": 5.611408154586742e-05
+  },
+  {
+    "feature": "team_롯데",
+    "mean_abs_shap": 5.540159522733247e-05
+  },
+  {
+    "feature": "team_한화",
+    "mean_abs_shap": 5.243022462700228e-05
+  },
+  {
+    "feature": "team_NC",
+    "mean_abs_shap": 5.160182582791104e-05
+  },
+  {
+    "feature": "position_3B",
+    "mean_abs_shap": 4.690970720093692e-05
+  },
+  {
+    "feature": "team_두산",
+    "mean_abs_shap": 4.352722105142722e-05
+  },
+  {
+    "feature": "team_SK",
+    "mean_abs_shap": 4.155048180363218e-05
+  },
+  {
+    "feature": "team_LG",
+    "mean_abs_shap": 3.6242672908767684e-05
+  },
+  {
+    "feature": "team_KIA",
+    "mean_abs_shap": 2.5679713647427495e-05
+  },
+  {
+    "feature": "team_빙그레",
+    "mean_abs_shap": 2.5472271986231337e-05
+  },
+  {
+    "feature": "team_쌍방울",
+    "mean_abs_shap": 2.086040184501615e-05
+  },
+  {
+    "feature": "team_KT",
+    "mean_abs_shap": 1.4773357692229588e-05
+  },
+  {
+    "feature": "team_청보",
+    "mean_abs_shap": 1.365114270174302e-05
+  },
+  {
+    "feature": "team_현대",
+    "mean_abs_shap": 1.1499695674447545e-05
+  },
+  {
+    "feature": "team_MBC",
+    "mean_abs_shap": 4.103231695582993e-06
+  },
+  {
+    "feature": "team_키움",
+    "mean_abs_shap": 2.5613603106326023e-06
+  },
+  {
+    "feature": "missingindicator_on_base_plus_slugging_lag_2",
+    "mean_abs_shap": 5.380861598637152e-07
+  },
+  {
+    "feature": "team_SSG",
+    "mean_abs_shap": 2.832345089664071e-07
+  },
+  {
+    "feature": "missingindicator_batting_average_lag_1",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_batting_average_lag_0",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "team_우리",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "team_삼미",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "team_히어로즈",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_batting_average_lag_2",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_batting_average_trend_3y",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_percentage_trend_3y",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_plus_slugging_trend_3y",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_plus_slugging_lag_1",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_plus_slugging_lag_0",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_slugging_percentage_trend_3y",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_slugging_percentage_lag_2",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_slugging_percentage_lag_1",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_slugging_percentage_lag_0",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_percentage_lag_1",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_percentage_lag_2",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "missingindicator_on_base_percentage_lag_0",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "age_trend_3y",
+    "mean_abs_shap": 0.0
+  }
+]

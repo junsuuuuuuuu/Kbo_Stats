@@ -1,0 +1,307 @@
+{
+  "model_key": "pitching_strikeouts",
+  "version": "1.0.0",
+  "role": "pitching",
+  "target": "strikeouts",
+  "selected_model": "xgboost",
+  "created_at_utc": "2026-07-20T11:34:27.558999+00:00",
+  "source": {
+    "path": "data/processed/pitching_stats_clean.csv",
+    "sha256": "98f28286f9379f902be8870222867d3c1b070bfb6dd4160a10306c51d1b73fe2",
+    "season_min": 1982,
+    "season_max": 2025
+  },
+  "training": {
+    "history_years": 3,
+    "sample_count": 2822,
+    "target_season_min": 1985,
+    "target_season_max": 2025,
+    "minimum_target_opportunity": 3,
+    "opportunity_column": "innings_pitched_outs",
+    "tuning_year": 2020,
+    "walk_forward_validation_years": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "numeric_features": [
+      "season",
+      "age_lag_0",
+      "age_lag_1",
+      "age_lag_2",
+      "age_mean_3y",
+      "age_trend_3y",
+      "games_lag_0",
+      "games_lag_1",
+      "games_lag_2",
+      "games_mean_3y",
+      "games_trend_3y",
+      "wins_lag_0",
+      "wins_lag_1",
+      "wins_lag_2",
+      "wins_mean_3y",
+      "wins_trend_3y",
+      "losses_lag_0",
+      "losses_lag_1",
+      "losses_lag_2",
+      "losses_mean_3y",
+      "losses_trend_3y",
+      "saves_lag_0",
+      "saves_lag_1",
+      "saves_lag_2",
+      "saves_mean_3y",
+      "saves_trend_3y",
+      "holds_lag_0",
+      "holds_lag_1",
+      "holds_lag_2",
+      "holds_mean_3y",
+      "holds_trend_3y",
+      "batters_faced_lag_0",
+      "batters_faced_lag_1",
+      "batters_faced_lag_2",
+      "batters_faced_mean_3y",
+      "batters_faced_trend_3y",
+      "innings_pitched_outs_lag_0",
+      "innings_pitched_outs_lag_1",
+      "innings_pitched_outs_lag_2",
+      "innings_pitched_outs_mean_3y",
+      "innings_pitched_outs_trend_3y",
+      "hits_allowed_lag_0",
+      "hits_allowed_lag_1",
+      "hits_allowed_lag_2",
+      "hits_allowed_mean_3y",
+      "hits_allowed_trend_3y",
+      "home_runs_allowed_lag_0",
+      "home_runs_allowed_lag_1",
+      "home_runs_allowed_lag_2",
+      "home_runs_allowed_mean_3y",
+      "home_runs_allowed_trend_3y",
+      "walks_allowed_lag_0",
+      "walks_allowed_lag_1",
+      "walks_allowed_lag_2",
+      "walks_allowed_mean_3y",
+      "walks_allowed_trend_3y",
+      "hit_batters_lag_0",
+      "hit_batters_lag_1",
+      "hit_batters_lag_2",
+      "hit_batters_mean_3y",
+      "hit_batters_trend_3y",
+      "strikeouts_lag_0",
+      "strikeouts_lag_1",
+      "strikeouts_lag_2",
+      "strikeouts_mean_3y",
+      "strikeouts_trend_3y",
+      "earned_runs_lag_0",
+      "earned_runs_lag_1",
+      "earned_runs_lag_2",
+      "earned_runs_mean_3y",
+      "earned_runs_trend_3y",
+      "earned_run_average_lag_0",
+      "earned_run_average_lag_1",
+      "earned_run_average_lag_2",
+      "earned_run_average_mean_3y",
+      "earned_run_average_trend_3y"
+    ],
+    "categorical_features": [
+      "team"
+    ]
+  },
+  "evaluation": {
+    "selection_metric": "mae",
+    "models": [
+      {
+        "model_name": "random_forest",
+        "parameters": {
+          "n_estimators": 400,
+          "max_depth": 12,
+          "min_samples_leaf": 3
+        },
+        "metrics": {
+          "mae": 20.11201298342143,
+          "rmse": 26.760010270090593,
+          "r2": 0.46581928036467846,
+          "sample_count": 526,
+          "baseline_mae": 21.302281368821294,
+          "baseline_rmse": 30.491942462445383,
+          "baseline_r2": 0.30643712135393864
+        },
+        "fold_metrics": [
+          {
+            "validation_year": 2021,
+            "mae": 21.73419702193137,
+            "rmse": 27.473515538544333,
+            "r2": 0.24399629442561444,
+            "sample_count": 102,
+            "baseline_mae": 22.137254901960784
+          },
+          {
+            "validation_year": 2022,
+            "mae": 18.570293371990424,
+            "rmse": 27.555723011411928,
+            "r2": 0.5778457545644664,
+            "sample_count": 99,
+            "baseline_mae": 17.03030303030303
+          },
+          {
+            "validation_year": 2023,
+            "mae": 17.76966488618086,
+            "rmse": 24.243261628745223,
+            "r2": 0.4580745386470535,
+            "sample_count": 111,
+            "baseline_mae": 21.1981981981982
+          },
+          {
+            "validation_year": 2024,
+            "mae": 20.75430935731961,
+            "rmse": 27.269224745075856,
+            "r2": 0.4310130401424671,
+            "sample_count": 112,
+            "baseline_mae": 21.026785714285715
+          },
+          {
+            "validation_year": 2025,
+            "mae": 21.82996312578185,
+            "rmse": 27.293450346978364,
+            "r2": 0.5032047264442175,
+            "sample_count": 102,
+            "baseline_mae": 25.029411764705884
+          }
+        ]
+      },
+      {
+        "model_name": "lightgbm",
+        "parameters": {
+          "n_estimators": 350,
+          "learning_rate": 0.03,
+          "num_leaves": 15
+        },
+        "metrics": {
+          "mae": 20.071606657501313,
+          "rmse": 27.042913597283686,
+          "r2": 0.45446500062026873,
+          "sample_count": 526,
+          "baseline_mae": 21.302281368821294,
+          "baseline_rmse": 30.491942462445383,
+          "baseline_r2": 0.30643712135393864
+        },
+        "fold_metrics": [
+          {
+            "validation_year": 2021,
+            "mae": 21.279203920034934,
+            "rmse": 27.299131327838445,
+            "r2": 0.25356308663693705,
+            "sample_count": 102,
+            "baseline_mae": 22.137254901960784
+          },
+          {
+            "validation_year": 2022,
+            "mae": 19.04847272203992,
+            "rmse": 28.22853587263025,
+            "r2": 0.5569790680151208,
+            "sample_count": 99,
+            "baseline_mae": 17.03030303030303
+          },
+          {
+            "validation_year": 2023,
+            "mae": 18.551108504821052,
+            "rmse": 25.329729912090045,
+            "r2": 0.40841306074924266,
+            "sample_count": 111,
+            "baseline_mae": 21.1981981981982
+          },
+          {
+            "validation_year": 2024,
+            "mae": 20.356060680955157,
+            "rmse": 27.2950639298337,
+            "r2": 0.42993423244655593,
+            "sample_count": 112,
+            "baseline_mae": 21.026785714285715
+          },
+          {
+            "validation_year": 2025,
+            "mae": 21.199369237431974,
+            "rmse": 27.13647496485131,
+            "r2": 0.5089028237358828,
+            "sample_count": 102,
+            "baseline_mae": 25.029411764705884
+          }
+        ]
+      },
+      {
+        "model_name": "xgboost",
+        "parameters": {
+          "n_estimators": 350,
+          "learning_rate": 0.03,
+          "max_depth": 3
+        },
+        "metrics": {
+          "mae": 19.67500648571058,
+          "rmse": 26.515154656265977,
+          "r2": 0.47555012471182345,
+          "sample_count": 526,
+          "baseline_mae": 21.302281368821294,
+          "baseline_rmse": 30.491942462445383,
+          "baseline_r2": 0.30643712135393864
+        },
+        "fold_metrics": [
+          {
+            "validation_year": 2021,
+            "mae": 20.626862142600267,
+            "rmse": 26.48453845620257,
+            "r2": 0.2974450943965311,
+            "sample_count": 102,
+            "baseline_mae": 22.137254901960784
+          },
+          {
+            "validation_year": 2022,
+            "mae": 18.075960351963236,
+            "rmse": 27.02837540544371,
+            "r2": 0.5938490955914262,
+            "sample_count": 99,
+            "baseline_mae": 17.03030303030303
+          },
+          {
+            "validation_year": 2023,
+            "mae": 17.739060547974734,
+            "rmse": 24.30528965685268,
+            "r2": 0.4552978850070132,
+            "sample_count": 111,
+            "baseline_mae": 21.1981981981982
+          },
+          {
+            "validation_year": 2024,
+            "mae": 20.412296644278936,
+            "rmse": 26.975574142303305,
+            "r2": 0.4432014129833943,
+            "sample_count": 112,
+            "baseline_mae": 21.026785714285715
+          },
+          {
+            "validation_year": 2025,
+            "mae": 21.572357383428834,
+            "rmse": 27.806072210374275,
+            "r2": 0.4843679955411828,
+            "sample_count": 102,
+            "baseline_mae": 25.029411764705884
+          }
+        ]
+      }
+    ]
+  },
+  "artifact": {
+    "pipeline_path": "backend/app/ml/artifacts/next_season/pitching_strikeouts/1.0.0/pipeline.joblib",
+    "pipeline_sha256": "16a385014e5e839e4905404a3fb482f3c68a280c9b29c2a27bbc54e73db03eac",
+    "shap_importance_path": "backend/app/ml/artifacts/next_season/pitching_strikeouts/1.0.0/shap_importance.json"
+  },
+  "libraries": {
+    "python": "3.14.0",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "scikit_learn": "1.9.0",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.3.0",
+    "shap": "0.52.0"
+  }
+}

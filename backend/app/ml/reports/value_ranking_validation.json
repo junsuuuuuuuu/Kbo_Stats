@@ -1,0 +1,70 @@
+{
+  "generated_at_utc": "2026-07-20T12:20:07.731074+00:00",
+  "season": 2025,
+  "score_range": [
+    0,
+    100
+  ],
+  "roles": {
+    "batting": {
+      "eligible_player_count": 155,
+      "team_count": 10,
+      "score_min": 12.763008130081301,
+      "score_mean": 50.32258064516129,
+      "score_max": 86.89677419354838,
+      "top_10_player_ids": [
+        52001,
+        65357,
+        69102,
+        53123,
+        76232,
+        72443,
+        54529,
+        51907,
+        62404,
+        69737
+      ],
+      "component_weights": {
+        "offense_score": 0.25,
+        "on_base_score": 0.15,
+        "power_score": 0.2,
+        "speed_score": 0.08,
+        "consistency_score": 0.1,
+        "availability_score": 0.1,
+        "age_potential_score": 0.05,
+        "team_contribution_score": 0.07
+      },
+      "source_sha256": "7c25d65165377fb6fbcb3d24f9fcc83b34c20f97b6d4ef029e65e589b9b352bb"
+    },
+    "pitching": {
+      "eligible_player_count": 139,
+      "team_count": 10,
+      "score_min": 19.31294964028777,
+      "score_mean": 51.48128978831324,
+      "score_max": 83.86359333585763,
+      "top_10_player_ids": [
+        51897,
+        55730,
+        73211,
+        68043,
+        53754,
+        50662,
+        53892,
+        54640,
+        54755,
+        52060
+      ],
+      "component_weights": {
+        "run_prevention_score": 0.25,
+        "strikeout_score": 0.18,
+        "control_score": 0.12,
+        "leverage_score": 0.1,
+        "consistency_score": 0.1,
+        "workload_score": 0.13,
+        "age_potential_score": 0.05,
+        "team_contribution_score": 0.07
+      },
+      "source_sha256": "98f28286f9379f902be8870222867d3c1b070bfb6dd4160a10306c51d1b73fe2"
+    }
+  }
+}

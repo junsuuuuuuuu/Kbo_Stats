@@ -1,0 +1,438 @@
+[
+  {
+    "feature": "on_base_plus_slugging_max_3",
+    "mean_abs_shap": 0.010613250595979869
+  },
+  {
+    "feature": "feature_cutoff_age",
+    "mean_abs_shap": 0.009430194310021074
+  },
+  {
+    "feature": "debut_age",
+    "mean_abs_shap": 0.006753293289927864
+  },
+  {
+    "feature": "debut_season",
+    "mean_abs_shap": 0.004766481390195491
+  },
+  {
+    "feature": "slugging_percentage_max_3",
+    "mean_abs_shap": 0.0038526775723670514
+  },
+  {
+    "feature": "on_base_percentage_max_3",
+    "mean_abs_shap": 0.002572413315545544
+  },
+  {
+    "feature": "on_base_plus_slugging_min_3",
+    "mean_abs_shap": 0.0018985409796842372
+  },
+  {
+    "feature": "runs_max_3",
+    "mean_abs_shap": 0.0016413512379772292
+  },
+  {
+    "feature": "slugging_percentage_trend_3",
+    "mean_abs_shap": 0.001628123618741795
+  },
+  {
+    "feature": "strikeouts_mean_3",
+    "mean_abs_shap": 0.001618799175728458
+  },
+  {
+    "feature": "walks_season_2",
+    "mean_abs_shap": 0.0014535117394784405
+  },
+  {
+    "feature": "slugging_percentage_min_3",
+    "mean_abs_shap": 0.001333292726675976
+  },
+  {
+    "feature": "batting_average_season_2",
+    "mean_abs_shap": 0.001290029370685412
+  },
+  {
+    "feature": "strikeouts_max_3",
+    "mean_abs_shap": 0.001248930380232549
+  },
+  {
+    "feature": "stolen_bases_season_2",
+    "mean_abs_shap": 0.001235903312297461
+  },
+  {
+    "feature": "runs_batted_in_season_1",
+    "mean_abs_shap": 0.0012111791422558305
+  },
+  {
+    "feature": "walks_max_3",
+    "mean_abs_shap": 0.001180156736028095
+  },
+  {
+    "feature": "games_season_3",
+    "mean_abs_shap": 0.0011341179316040086
+  },
+  {
+    "feature": "strikeouts_season_1",
+    "mean_abs_shap": 0.0010080490018668225
+  },
+  {
+    "feature": "on_base_percentage_season_2",
+    "mean_abs_shap": 0.0009887438545635033
+  },
+  {
+    "feature": "walks_trend_3",
+    "mean_abs_shap": 0.0008982830797507283
+  },
+  {
+    "feature": "batting_average_max_3",
+    "mean_abs_shap": 0.0008948572495779217
+  },
+  {
+    "feature": "stolen_bases_season_3",
+    "mean_abs_shap": 0.0008445144044846037
+  },
+  {
+    "feature": "runs_season_1",
+    "mean_abs_shap": 0.000832228446267703
+  },
+  {
+    "feature": "walks_min_3",
+    "mean_abs_shap": 0.0008200112830338491
+  },
+  {
+    "feature": "on_base_percentage_min_3",
+    "mean_abs_shap": 0.0008188193240282884
+  },
+  {
+    "feature": "runs_season_3",
+    "mean_abs_shap": 0.0008113697509258716
+  },
+  {
+    "feature": "home_runs_max_3",
+    "mean_abs_shap": 0.0008071225119964371
+  },
+  {
+    "feature": "on_base_percentage_mean_3",
+    "mean_abs_shap": 0.0007922980226653223
+  },
+  {
+    "feature": "on_base_plus_slugging_season_2",
+    "mean_abs_shap": 0.0007089868512845636
+  },
+  {
+    "feature": "walks_season_3",
+    "mean_abs_shap": 0.0006454898379674567
+  },
+  {
+    "feature": "walks_mean_3",
+    "mean_abs_shap": 0.0006442565128999473
+  },
+  {
+    "feature": "on_base_plus_slugging_mean_3",
+    "mean_abs_shap": 0.0006402922592323537
+  },
+  {
+    "feature": "games_min_3",
+    "mean_abs_shap": 0.0006286073706881964
+  },
+  {
+    "feature": "stolen_bases_mean_3",
+    "mean_abs_shap": 0.000595403645149677
+  },
+  {
+    "feature": "runs_season_2",
+    "mean_abs_shap": 0.0005793883462613612
+  },
+  {
+    "feature": "walks_season_1",
+    "mean_abs_shap": 0.0005657049590382858
+  },
+  {
+    "feature": "games_season_1",
+    "mean_abs_shap": 0.0005273945270733734
+  },
+  {
+    "feature": "on_base_plus_slugging_season_1",
+    "mean_abs_shap": 0.0005238948125314694
+  },
+  {
+    "feature": "on_base_percentage_trend_3",
+    "mean_abs_shap": 0.0005237092224197251
+  },
+  {
+    "feature": "home_runs_season_3",
+    "mean_abs_shap": 0.000516930568436259
+  },
+  {
+    "feature": "games_max_3",
+    "mean_abs_shap": 0.0005086829184199438
+  },
+  {
+    "feature": "on_base_percentage_season_1",
+    "mean_abs_shap": 0.0004939382321460084
+  },
+  {
+    "feature": "stolen_bases_trend_3",
+    "mean_abs_shap": 0.00047397360167726816
+  },
+  {
+    "feature": "slugging_percentage_mean_3",
+    "mean_abs_shap": 0.0004566169788652746
+  },
+  {
+    "feature": "batting_average_season_1",
+    "mean_abs_shap": 0.000446973594723284
+  },
+  {
+    "feature": "batting_average_min_3",
+    "mean_abs_shap": 0.0004435254059569275
+  },
+  {
+    "feature": "stolen_bases_max_3",
+    "mean_abs_shap": 0.00043085291820860405
+  },
+  {
+    "feature": "slugging_percentage_season_1",
+    "mean_abs_shap": 0.0004182601230638341
+  },
+  {
+    "feature": "slugging_percentage_season_2",
+    "mean_abs_shap": 0.0004021025381802021
+  },
+  {
+    "feature": "strikeouts_season_2",
+    "mean_abs_shap": 0.00039126121586428864
+  },
+  {
+    "feature": "strikeouts_trend_3",
+    "mean_abs_shap": 0.00037965457938998466
+  },
+  {
+    "feature": "home_runs_mean_3",
+    "mean_abs_shap": 0.0003749556972714138
+  },
+  {
+    "feature": "home_runs_min_3",
+    "mean_abs_shap": 0.0003629186597819724
+  },
+  {
+    "feature": "plate_appearances_season_3",
+    "mean_abs_shap": 0.00035664091359721586
+  },
+  {
+    "feature": "plate_appearances_max_3",
+    "mean_abs_shap": 0.0003320782820499716
+  },
+  {
+    "feature": "home_runs_trend_3",
+    "mean_abs_shap": 0.0003284101030009128
+  },
+  {
+    "feature": "runs_batted_in_trend_3",
+    "mean_abs_shap": 0.0003224264456008479
+  },
+  {
+    "feature": "hits_season_3",
+    "mean_abs_shap": 0.0002980874590112089
+  },
+  {
+    "feature": "plate_appearances_season_2",
+    "mean_abs_shap": 0.00029328914991469445
+  },
+  {
+    "feature": "batting_average_trend_3",
+    "mean_abs_shap": 0.00029267557242927537
+  },
+  {
+    "feature": "batting_average_season_3",
+    "mean_abs_shap": 0.0002913479825582451
+  },
+  {
+    "feature": "at_bats_trend_3",
+    "mean_abs_shap": 0.0002858730510976112
+  },
+  {
+    "feature": "on_base_percentage_season_3",
+    "mean_abs_shap": 0.00028298196271806674
+  },
+  {
+    "feature": "games_trend_3",
+    "mean_abs_shap": 0.00027352623388130897
+  },
+  {
+    "feature": "home_runs_season_1",
+    "mean_abs_shap": 0.00026625703143223973
+  },
+  {
+    "feature": "on_base_plus_slugging_season_3",
+    "mean_abs_shap": 0.00026237866235987974
+  },
+  {
+    "feature": "runs_trend_3",
+    "mean_abs_shap": 0.0002585207796679061
+  },
+  {
+    "feature": "games_mean_3",
+    "mean_abs_shap": 0.0002568382800069951
+  },
+  {
+    "feature": "position_1B",
+    "mean_abs_shap": 0.00025601648300674346
+  },
+  {
+    "feature": "runs_mean_3",
+    "mean_abs_shap": 0.000254523268972281
+  },
+  {
+    "feature": "at_bats_season_3",
+    "mean_abs_shap": 0.0002470467917937117
+  },
+  {
+    "feature": "runs_batted_in_season_3",
+    "mean_abs_shap": 0.0002450522563411087
+  },
+  {
+    "feature": "home_runs_season_2",
+    "mean_abs_shap": 0.0002415228031540533
+  },
+  {
+    "feature": "strikeouts_season_3",
+    "mean_abs_shap": 0.0002231244894433357
+  },
+  {
+    "feature": "at_bats_max_3",
+    "mean_abs_shap": 0.0002181906019673748
+  },
+  {
+    "feature": "games_season_2",
+    "mean_abs_shap": 0.0002083131517325787
+  },
+  {
+    "feature": "on_base_plus_slugging_trend_3",
+    "mean_abs_shap": 0.00020336138349736886
+  },
+  {
+    "feature": "at_bats_season_2",
+    "mean_abs_shap": 0.00020193262319030577
+  },
+  {
+    "feature": "position_C",
+    "mean_abs_shap": 0.00019968904707400755
+  },
+  {
+    "feature": "batting_average_mean_3",
+    "mean_abs_shap": 0.00019224108844120947
+  },
+  {
+    "feature": "runs_batted_in_mean_3",
+    "mean_abs_shap": 0.00018579070230775557
+  },
+  {
+    "feature": "runs_batted_in_season_2",
+    "mean_abs_shap": 0.0001692977547948148
+  },
+  {
+    "feature": "strikeouts_min_3",
+    "mean_abs_shap": 0.00016840400073817635
+  },
+  {
+    "feature": "hits_season_2",
+    "mean_abs_shap": 0.00016085204878045676
+  },
+  {
+    "feature": "at_bats_season_1",
+    "mean_abs_shap": 0.0001600141958280373
+  },
+  {
+    "feature": "plate_appearances_trend_3",
+    "mean_abs_shap": 0.00015901254192308842
+  },
+  {
+    "feature": "hits_max_3",
+    "mean_abs_shap": 0.00015892963094924924
+  },
+  {
+    "feature": "position_OF",
+    "mean_abs_shap": 0.00015751542538955518
+  },
+  {
+    "feature": "runs_min_3",
+    "mean_abs_shap": 0.00014983480523077136
+  },
+  {
+    "feature": "hits_min_3",
+    "mean_abs_shap": 0.00014911513519970737
+  },
+  {
+    "feature": "runs_batted_in_min_3",
+    "mean_abs_shap": 0.000139377641814
+  },
+  {
+    "feature": "hits_season_1",
+    "mean_abs_shap": 0.00013226485671264743
+  },
+  {
+    "feature": "hits_trend_3",
+    "mean_abs_shap": 0.00013105470193772596
+  },
+  {
+    "feature": "runs_batted_in_max_3",
+    "mean_abs_shap": 0.0001279722064681846
+  },
+  {
+    "feature": "stolen_bases_min_3",
+    "mean_abs_shap": 0.00012657193112445132
+  },
+  {
+    "feature": "plate_appearances_mean_3",
+    "mean_abs_shap": 0.00011978019029243693
+  },
+  {
+    "feature": "plate_appearances_min_3",
+    "mean_abs_shap": 0.00011959070278577082
+  },
+  {
+    "feature": "plate_appearances_season_1",
+    "mean_abs_shap": 9.88453713148384e-05
+  },
+  {
+    "feature": "at_bats_min_3",
+    "mean_abs_shap": 9.751330088354292e-05
+  },
+  {
+    "feature": "stolen_bases_season_1",
+    "mean_abs_shap": 9.617900471340556e-05
+  },
+  {
+    "feature": "at_bats_mean_3",
+    "mean_abs_shap": 9.533166328104764e-05
+  },
+  {
+    "feature": "slugging_percentage_season_3",
+    "mean_abs_shap": 9.337565318112123e-05
+  },
+  {
+    "feature": "early_career_season_span",
+    "mean_abs_shap": 8.184786138666405e-05
+  },
+  {
+    "feature": "hits_mean_3",
+    "mean_abs_shap": 6.957359484186048e-05
+  },
+  {
+    "feature": "position_3B",
+    "mean_abs_shap": 1.8677134115694492e-06
+  },
+  {
+    "feature": "position_DH",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "position_2B",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "position_SS",
+    "mean_abs_shap": 0.0
+  }
+]

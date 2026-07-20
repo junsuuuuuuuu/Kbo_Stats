@@ -1,0 +1,701 @@
+{
+  "batting": {
+    "file": "data\\raw\\kbo_batting_stats_season_1982-2025.csv",
+    "sha256": "e517267d5a0e1e8795f0d03c9dd3d57cbd47dbbb27f7473cdda261e8ead627eb",
+    "rows": 9703,
+    "columns": [
+      "Id",
+      "URL",
+      "Player",
+      "Age",
+      "Born",
+      "Position",
+      "BatThrow",
+      "HtWt",
+      "Career",
+      "Draft",
+      "Season",
+      "Team",
+      "G",
+      "PA",
+      "AB",
+      "R",
+      "H",
+      "2B",
+      "3B",
+      "HR",
+      "TB",
+      "RBI",
+      "SB",
+      "CS",
+      "BB",
+      "HBP",
+      "SO",
+      "GDP",
+      "SF",
+      "SH",
+      "E",
+      "AVG",
+      "SLG",
+      "OBP",
+      "OPS"
+    ],
+    "column_count": 35,
+    "season_min": 1982,
+    "season_max": 2025,
+    "unique_players_by_id": 1867,
+    "unique_player_names": 1760,
+    "unique_teams": 23,
+    "exact_duplicate_rows": 0,
+    "duplicate_key_rows": 0,
+    "blank_counts": {
+      "HtWt": 1490,
+      "Career": 1,
+      "Draft": 3533,
+      "SLG": 171,
+      "OBP": 171,
+      "OPS": 171
+    },
+    "dash_placeholder_counts": {
+      "AVG": 171
+    },
+    "age_range": [
+      18,
+      91
+    ],
+    "age_birth_year_mismatch_rows": 1,
+    "invalid_birth_date_rows": 0,
+    "suspicious_age_rows": [
+      {
+        "Id": "91145",
+        "Player": "문기영",
+        "Age": "91",
+        "Born": "1972-09-24",
+        "Season": "1991",
+        "Team": "삼성"
+      }
+    ],
+    "identity_conflicts": {
+      "Player": {
+        "player_count": 0,
+        "sample_ids": []
+      },
+      "Born": {
+        "player_count": 0,
+        "sample_ids": []
+      },
+      "BatThrow": {
+        "player_count": 0,
+        "sample_ids": []
+      }
+    },
+    "same_name_multiple_id_count": 88,
+    "same_name_multiple_id_samples": {
+      "김정수": 5,
+      "가르시아": 4,
+      "김재현": 4,
+      "김민수": 3,
+      "김상호": 3,
+      "김성호": 3,
+      "김정민": 3,
+      "김경호": 3,
+      "이병규": 3,
+      "이정훈": 3,
+      "박종호": 3,
+      "디아즈": 3,
+      "김태완": 3,
+      "김주현": 3,
+      "전준호": 3,
+      "김민호": 2,
+      "김민석": 2,
+      "김무성": 2,
+      "김대원": 2,
+      "김기환": 2
+    },
+    "team_values": [
+      "KIA",
+      "KT",
+      "LG",
+      "MBC",
+      "NC",
+      "OB",
+      "SK",
+      "SSG",
+      "넥센",
+      "두산",
+      "롯데",
+      "빙그레",
+      "삼미",
+      "삼성",
+      "쌍방울",
+      "우리",
+      "청보",
+      "키움",
+      "태평양",
+      "한화",
+      "해태",
+      "현대",
+      "히어로즈"
+    ],
+    "rows_by_season": {
+      "1982": 100,
+      "1983": 117,
+      "1984": 133,
+      "1985": 138,
+      "1986": 172,
+      "1987": 162,
+      "1988": 173,
+      "1989": 184,
+      "1990": 193,
+      "1991": 226,
+      "1992": 223,
+      "1993": 215,
+      "1994": 231,
+      "1995": 221,
+      "1996": 232,
+      "1997": 226,
+      "1998": 196,
+      "1999": 193,
+      "2000": 200,
+      "2001": 210,
+      "2002": 212,
+      "2003": 212,
+      "2004": 218,
+      "2005": 201,
+      "2006": 193,
+      "2007": 210,
+      "2008": 216,
+      "2009": 207,
+      "2010": 198,
+      "2011": 207,
+      "2012": 223,
+      "2013": 247,
+      "2014": 239,
+      "2015": 288,
+      "2016": 284,
+      "2017": 274,
+      "2018": 268,
+      "2019": 291,
+      "2020": 289,
+      "2021": 297,
+      "2022": 284,
+      "2023": 292,
+      "2024": 299,
+      "2025": 309
+    },
+    "numeric_summary": {
+      "Age": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 18.0,
+        "max": 91.0,
+        "negative_count": 0
+      },
+      "Season": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 1982.0,
+        "max": 2025.0,
+        "negative_count": 0
+      },
+      "G": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 1.0,
+        "max": 144.0,
+        "negative_count": 0
+      },
+      "PA": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 672.0,
+        "negative_count": 0
+      },
+      "AB": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 600.0,
+        "negative_count": 0
+      },
+      "R": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 143.0,
+        "negative_count": 0
+      },
+      "H": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 202.0,
+        "negative_count": 0
+      },
+      "2B": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 49.0,
+        "negative_count": 0
+      },
+      "3B": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 17.0,
+        "negative_count": 0
+      },
+      "HR": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 56.0,
+        "negative_count": 0
+      },
+      "TB": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 377.0,
+        "negative_count": 0
+      },
+      "RBI": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 158.0,
+        "negative_count": 0
+      },
+      "SB": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 84.0,
+        "negative_count": 0
+      },
+      "CS": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 25.0,
+        "negative_count": 0
+      },
+      "BB": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 127.0,
+        "negative_count": 0
+      },
+      "HBP": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 31.0,
+        "negative_count": 0
+      },
+      "SO": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 173.0,
+        "negative_count": 0
+      },
+      "GDP": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 34.0,
+        "negative_count": 0
+      },
+      "SF": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 16.0,
+        "negative_count": 0
+      },
+      "SH": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 41.0,
+        "negative_count": 0
+      },
+      "E": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 35.0,
+        "negative_count": 0
+      },
+      "AVG": {
+        "missing_or_placeholder": 171,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 1.0,
+        "negative_count": 0
+      },
+      "SLG": {
+        "missing_or_placeholder": 171,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 4.0,
+        "negative_count": 0
+      },
+      "OBP": {
+        "missing_or_placeholder": 171,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 1.0,
+        "negative_count": 0
+      },
+      "OPS": {
+        "missing_or_placeholder": 171,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 5.0,
+        "negative_count": 0
+      }
+    },
+    "ml_sequence_candidates": {
+      "consecutive_1_year_history_with_next_season": 7143,
+      "consecutive_3_year_history_with_next_season": 4331,
+      "consecutive_5_year_history_with_next_season": 2753
+    },
+    "domain_checks": {
+      "hits_greater_than_at_bats": 0,
+      "pa_less_than_ab": 0,
+      "avg_formula_mismatch_over_0_0015": 0,
+      "slg_formula_mismatch_over_0_0015": 0,
+      "obp_formula_mismatch_over_0_0015": 0,
+      "ops_sum_mismatch_over_0_0015": 0
+    }
+  },
+  "pitching": {
+    "file": "data\\raw\\kbo_pitching_stats_season_1982-2025.csv",
+    "sha256": "f78e6cf0783f6d2f3938a80f52e98eb1892b0f95ac49e532b9b97d3a8e36701c",
+    "rows": 7625,
+    "columns": [
+      "Id",
+      "URL",
+      "Player",
+      "Age",
+      "Born",
+      "Position",
+      "BatThrow",
+      "HtWt",
+      "Career",
+      "Draft",
+      "Season",
+      "Team",
+      "ERA",
+      "G",
+      "CG",
+      "SHO",
+      "W",
+      "L",
+      "SV",
+      "HLD",
+      "WPCT",
+      "TBF",
+      "IP",
+      "H",
+      "HR",
+      "BB",
+      "HBP",
+      "SO",
+      "R",
+      "ER"
+    ],
+    "column_count": 30,
+    "season_min": 1982,
+    "season_max": 2025,
+    "unique_players_by_id": 1665,
+    "unique_player_names": 1572,
+    "unique_teams": 23,
+    "exact_duplicate_rows": 0,
+    "duplicate_key_rows": 0,
+    "blank_counts": {
+      "HtWt": 866,
+      "Draft": 2277
+    },
+    "dash_placeholder_counts": {
+      "ERA": 46,
+      "WPCT": 1980
+    },
+    "age_range": [
+      16,
+      43
+    ],
+    "age_birth_year_mismatch_rows": 0,
+    "invalid_birth_date_rows": 0,
+    "suspicious_age_rows": [],
+    "identity_conflicts": {
+      "Player": {
+        "player_count": 0,
+        "sample_ids": []
+      },
+      "Born": {
+        "player_count": 0,
+        "sample_ids": []
+      },
+      "BatThrow": {
+        "player_count": 0,
+        "sample_ids": []
+      }
+    },
+    "same_name_multiple_id_count": 75,
+    "same_name_multiple_id_samples": {
+      "산체스": 4,
+      "스미스": 4,
+      "김태형": 4,
+      "이상훈": 4,
+      "김진욱": 3,
+      "박건우": 3,
+      "앤더슨": 3,
+      "김성훈": 3,
+      "허준혁": 3,
+      "이승호": 3,
+      "이용호": 3,
+      "에르난데스": 3,
+      "김태훈": 3,
+      "최우석": 3,
+      "김동호": 2,
+      "김민기": 2,
+      "김민규": 2,
+      "김기태": 2,
+      "김기덕": 2,
+      "김경태": 2
+    },
+    "team_values": [
+      "KIA",
+      "KT",
+      "LG",
+      "MBC",
+      "NC",
+      "OB",
+      "SK",
+      "SSG",
+      "넥센",
+      "두산",
+      "롯데",
+      "빙그레",
+      "삼미",
+      "삼성",
+      "쌍방울",
+      "우리",
+      "청보",
+      "키움",
+      "태평양",
+      "한화",
+      "해태",
+      "현대",
+      "히어로즈"
+    ],
+    "rows_by_season": {
+      "1982": 42,
+      "1983": 55,
+      "1984": 59,
+      "1985": 66,
+      "1986": 88,
+      "1987": 88,
+      "1988": 90,
+      "1989": 116,
+      "1990": 115,
+      "1991": 133,
+      "1992": 132,
+      "1993": 124,
+      "1994": 139,
+      "1995": 139,
+      "1996": 143,
+      "1997": 143,
+      "1998": 135,
+      "1999": 149,
+      "2000": 154,
+      "2001": 174,
+      "2002": 171,
+      "2003": 170,
+      "2004": 178,
+      "2005": 175,
+      "2006": 172,
+      "2007": 172,
+      "2008": 187,
+      "2009": 189,
+      "2010": 191,
+      "2011": 185,
+      "2012": 188,
+      "2013": 194,
+      "2014": 210,
+      "2015": 244,
+      "2016": 249,
+      "2017": 239,
+      "2018": 260,
+      "2019": 256,
+      "2020": 281,
+      "2021": 298,
+      "2022": 279,
+      "2023": 285,
+      "2024": 290,
+      "2025": 278
+    },
+    "numeric_summary": {
+      "Age": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 16.0,
+        "max": 43.0,
+        "negative_count": 0
+      },
+      "Season": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 1982.0,
+        "max": 2025.0,
+        "negative_count": 0
+      },
+      "ERA": {
+        "missing_or_placeholder": 46,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 162.0,
+        "negative_count": 0
+      },
+      "G": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 1.0,
+        "max": 85.0,
+        "negative_count": 0
+      },
+      "CG": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 36.0,
+        "negative_count": 0
+      },
+      "SHO": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 8.0,
+        "negative_count": 0
+      },
+      "W": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 30.0,
+        "negative_count": 0
+      },
+      "L": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 25.0,
+        "negative_count": 0
+      },
+      "SV": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 47.0,
+        "negative_count": 0
+      },
+      "HLD": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 40.0,
+        "negative_count": 0
+      },
+      "WPCT": {
+        "missing_or_placeholder": 1980,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 1.0,
+        "negative_count": 0
+      },
+      "TBF": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 1.0,
+        "max": 1712.0,
+        "negative_count": 0
+      },
+      "H": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 388.0,
+        "negative_count": 0
+      },
+      "HR": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 34.0,
+        "negative_count": 0
+      },
+      "BB": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 134.0,
+        "negative_count": 0
+      },
+      "HBP": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 28.0,
+        "negative_count": 0
+      },
+      "SO": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 252.0,
+        "negative_count": 0
+      },
+      "R": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 175.0,
+        "negative_count": 0
+      },
+      "ER": {
+        "missing_or_placeholder": 0,
+        "parse_failures": 0,
+        "min": 0.0,
+        "max": 145.0,
+        "negative_count": 0
+      }
+    },
+    "ml_sequence_candidates": {
+      "consecutive_1_year_history_with_next_season": 5280,
+      "consecutive_3_year_history_with_next_season": 2855,
+      "consecutive_5_year_history_with_next_season": 1598
+    },
+    "innings": {
+      "missing_or_placeholder": 0,
+      "invalid_values": [],
+      "total_outs": 1256921,
+      "zero_out_rows": 46
+    },
+    "domain_checks": {
+      "earned_runs_greater_than_runs": 0,
+      "era_formula_mismatch_over_0_015": 0,
+      "wpct_formula_mismatch_over_0_0015": 0
+    }
+  },
+  "cross_file": {
+    "players_in_both_files": 26,
+    "identity_conflict_count": 0,
+    "identity_conflict_samples": []
+  }
+}

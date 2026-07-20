@@ -1,0 +1,34 @@
+{
+  "sources": {
+    "batting": {
+      "path": "data\\raw\\kbo_batting_stats_season_1982-2025.csv",
+      "sha256": "e517267d5a0e1e8795f0d03c9dd3d57cbd47dbbb27f7473cdda261e8ead627eb"
+    },
+    "pitching": {
+      "path": "data\\raw\\kbo_pitching_stats_season_1982-2025.csv",
+      "sha256": "f78e6cf0783f6d2f3938a80f52e98eb1892b0f95ac49e532b9b97d3a8e36701c"
+    }
+  },
+  "outputs": {
+    "batting": {
+      "path": "data\\processed\\batting_stats_clean.csv",
+      "sha256": "7c25d65165377fb6fbcb3d24f9fcc83b34c20f97b6d4ef029e65e589b9b352bb",
+      "rows": 9703,
+      "columns": 38
+    },
+    "pitching": {
+      "path": "data\\processed\\pitching_stats_clean.csv",
+      "sha256": "98f28286f9379f902be8870222867d3c1b070bfb6dd4160a10306c51d1b73fe2",
+      "rows": 7625,
+      "columns": 34
+    }
+  },
+  "rules": [
+    "원본 컬럼명을 snake_case 영문 의미명으로 변환",
+    "빈 문자열과 '-' 비율값을 NULL로 변환",
+    "생년과 시즌이 증명하는 나이 오기 교정 및 age_was_corrected 추가",
+    "height_weight에서 height_cm, weight_kg 파생",
+    "야구식 IP 혼합 분수를 innings_pitched_outs로 변환",
+    "원본 행 삭제 및 통계값 임의 대치 없음"
+  ]
+}

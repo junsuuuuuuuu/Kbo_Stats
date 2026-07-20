@@ -1,0 +1,18 @@
+services:
+  - type: web
+    runtime: docker
+    name: kbo-ai-player-analytics-api
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile
+    preDeployCommand: python -m alembic upgrade head
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: ML_N_JOBS
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

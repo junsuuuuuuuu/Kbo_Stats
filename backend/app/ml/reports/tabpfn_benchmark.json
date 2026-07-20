@@ -1,0 +1,276 @@
+{
+  "runtime": {
+    "python": "3.13.2",
+    "tabpfn": "2.2.1",
+    "torch": "2.13.0+cpu",
+    "cuda": false
+  },
+  "limitations": {
+    "benchmark_only": true,
+    "reason": "Python 3.13 격리 CPU 환경이며 배포 pipeline과 호환되지 않음",
+    "n_estimators": 1,
+    "max_train_samples": 1000
+  },
+  "targets": {
+    "batting_average": {
+      "model_name": "tabpfn",
+      "parameters": {
+        "n_estimators": 1,
+        "device": "cpu",
+        "max_train_samples": 1000
+      },
+      "metrics": {
+        "mae": 0.02734257069927318,
+        "rmse": 0.03492589035866816,
+        "r2": 0.23113320286306582,
+        "sample_count": 483
+      },
+      "fold_metrics": [
+        {
+          "validation_year": 2021,
+          "mae": 0.02819441298387384,
+          "rmse": 0.03669586028398344,
+          "r2": 0.1335507463161777,
+          "sample_count": 93
+        },
+        {
+          "validation_year": 2022,
+          "mae": 0.0274798954077389,
+          "rmse": 0.035163970505071425,
+          "r2": 0.22998538731012286,
+          "sample_count": 92
+        },
+        {
+          "validation_year": 2023,
+          "mae": 0.028901186061136924,
+          "rmse": 0.03593417648260106,
+          "r2": 0.3048837752519,
+          "sample_count": 103
+        },
+        {
+          "validation_year": 2024,
+          "mae": 0.027847614788240004,
+          "rmse": 0.03497559197441969,
+          "r2": 0.1476338056685771,
+          "sample_count": 93
+        },
+        {
+          "validation_year": 2025,
+          "mae": 0.024407652187581154,
+          "rmse": 0.031841302394458135,
+          "r2": 0.21789217237516967,
+          "sample_count": 102
+        }
+      ],
+      "benchmark_only": true
+    },
+    "on_base_plus_slugging": {
+      "model_name": "tabpfn",
+      "parameters": {
+        "n_estimators": 1,
+        "device": "cpu",
+        "max_train_samples": 1000
+      },
+      "metrics": {
+        "mae": 0.07111091774294837,
+        "rmse": 0.09075411300628154,
+        "r2": 0.30079008752689207,
+        "sample_count": 483
+      },
+      "fold_metrics": [
+        {
+          "validation_year": 2021,
+          "mae": 0.06422134909578547,
+          "rmse": 0.08123608827495234,
+          "r2": 0.36266297729006924,
+          "sample_count": 93
+        },
+        {
+          "validation_year": 2022,
+          "mae": 0.07952692247473675,
+          "rmse": 0.09894427404677071,
+          "r2": 0.18635146985746343,
+          "sample_count": 92
+        },
+        {
+          "validation_year": 2023,
+          "mae": 0.0749848804057223,
+          "rmse": 0.09557943536089895,
+          "r2": 0.27761402044946115,
+          "sample_count": 103
+        },
+        {
+          "validation_year": 2024,
+          "mae": 0.08088805093560168,
+          "rmse": 0.09827873468679156,
+          "r2": 0.1859148772437711,
+          "sample_count": 93
+        },
+        {
+          "validation_year": 2025,
+          "mae": 0.05697528938686147,
+          "rmse": 0.07824771223367706,
+          "r2": 0.39757308375960243,
+          "sample_count": 102
+        }
+      ],
+      "benchmark_only": true
+    },
+    "home_runs": {
+      "model_name": "tabpfn",
+      "parameters": {
+        "n_estimators": 1,
+        "device": "cpu",
+        "max_train_samples": 1000
+      },
+      "metrics": {
+        "mae": 3.08309092450641,
+        "rmse": 4.666863660915447,
+        "r2": 0.5939205292278517,
+        "sample_count": 621
+      },
+      "fold_metrics": [
+        {
+          "validation_year": 2021,
+          "mae": 3.286035843824936,
+          "rmse": 4.537134569902285,
+          "r2": 0.6618660804942085,
+          "sample_count": 118
+        },
+        {
+          "validation_year": 2022,
+          "mae": 2.7088907291491826,
+          "rmse": 4.43330036846011,
+          "r2": 0.6153598090515475,
+          "sample_count": 120
+        },
+        {
+          "validation_year": 2023,
+          "mae": 2.977310263156891,
+          "rmse": 4.441535279828733,
+          "r2": 0.48100557167253755,
+          "sample_count": 125
+        },
+        {
+          "validation_year": 2024,
+          "mae": 3.6941666681637138,
+          "rmse": 5.671883880241535,
+          "r2": 0.5522272908222702,
+          "sample_count": 129
+        },
+        {
+          "validation_year": 2025,
+          "mae": 2.7369694880736892,
+          "rmse": 4.0555016181693215,
+          "r2": 0.6257864055388478,
+          "sample_count": 129
+        }
+      ],
+      "benchmark_only": true
+    },
+    "earned_run_average": {
+      "model_name": "tabpfn",
+      "parameters": {
+        "n_estimators": 1,
+        "device": "cpu",
+        "max_train_samples": 1000
+      },
+      "metrics": {
+        "mae": 0.9407590441618646,
+        "rmse": 1.1878772716620665,
+        "r2": 0.0032787689938353903,
+        "sample_count": 224
+      },
+      "fold_metrics": [
+        {
+          "validation_year": 2021,
+          "mae": 1.1584004439805682,
+          "rmse": 1.3947127867519937,
+          "r2": 0.09353276541176814,
+          "sample_count": 38
+        },
+        {
+          "validation_year": 2022,
+          "mae": 0.8660007146509682,
+          "rmse": 1.0675254498301596,
+          "r2": -0.25031386669476907,
+          "sample_count": 41
+        },
+        {
+          "validation_year": 2023,
+          "mae": 0.8692224763474374,
+          "rmse": 1.0945103462086934,
+          "r2": 0.07539456841109038,
+          "sample_count": 53
+        },
+        {
+          "validation_year": 2024,
+          "mae": 0.9785249239603678,
+          "rmse": 1.3328598491614665,
+          "r2": -0.30759187906064,
+          "sample_count": 45
+        },
+        {
+          "validation_year": 2025,
+          "mae": 0.874518444588844,
+          "rmse": 1.051832322348942,
+          "r2": -0.016532975983416742,
+          "sample_count": 47
+        }
+      ],
+      "benchmark_only": true
+    },
+    "strikeouts": {
+      "model_name": "tabpfn",
+      "parameters": {
+        "n_estimators": 1,
+        "device": "cpu",
+        "max_train_samples": 1000
+      },
+      "metrics": {
+        "mae": 19.748094486193057,
+        "rmse": 26.74011040552444,
+        "r2": 0.46661346327900544,
+        "sample_count": 526
+      },
+      "fold_metrics": [
+        {
+          "validation_year": 2021,
+          "mae": 19.710162190830005,
+          "rmse": 25.289939381097224,
+          "r2": 0.359393959491783,
+          "sample_count": 102
+        },
+        {
+          "validation_year": 2022,
+          "mae": 18.14041844762937,
+          "rmse": 26.60695715779401,
+          "r2": 0.6064155238042969,
+          "sample_count": 99
+        },
+        {
+          "validation_year": 2023,
+          "mae": 18.170985402287663,
+          "rmse": 24.86769497074742,
+          "r2": 0.4297982805373147,
+          "sample_count": 111
+        },
+        {
+          "validation_year": 2024,
+          "mae": 21.0034225157329,
+          "rmse": 28.133667699034763,
+          "r2": 0.39436713035100934,
+          "sample_count": 112
+        },
+        {
+          "validation_year": 2025,
+          "mae": 21.684284593544753,
+          "rmse": 28.61068224674333,
+          "r2": 0.4540950892263519,
+          "sample_count": 102
+        }
+      ],
+      "benchmark_only": true
+    }
+  }
+}

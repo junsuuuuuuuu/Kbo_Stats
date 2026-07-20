@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "expected_cardinality": {
+    "players": 3506,
+    "player_source_profiles": 3532,
+    "teams": 23,
+    "batting_season_stats": 9703,
+    "pitching_season_stats": 7625
+  },
+  "validated": [
+    "natural_key_uniqueness",
+    "foreign_key_source_domains",
+    "mysql_integer_ranges",
+    "varchar_lengths",
+    "profile_domains",
+    "batting_check_constraints",
+    "pitching_check_constraints",
+    "cross_file_player_identity"
+  ]
+}

@@ -1,0 +1,15 @@
+.git
+.agents
+.venv
+.venv-tabpfn
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+frontend/node_modules
+frontend/.next
+data/raw
+reports
+*.log
+backend/.env
+frontend/.env*
+!frontend/.env.example

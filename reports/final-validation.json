@@ -1,0 +1,47 @@
+{
+  "validated_at": "2026-07-20",
+  "data": {
+    "season_range": [1982, 2025],
+    "players_in_mysql": 3506,
+    "batting_rows": 9703,
+    "pitching_rows": 7625
+  },
+  "machine_learning": {
+    "next_season_targets": 5,
+    "peak_targets": 6,
+    "recommendation_algorithms": ["cosine_similarity", "knn", "pca"],
+    "growth_event_rule": "league p10/p90",
+    "value_score_range": [0, 100],
+    "artifact_checksum_validation": "passed"
+  },
+  "backend": {
+    "ruff": "passed",
+    "pytest": {"passed": 37, "failed": 0},
+    "mysql_runtime_smoke": "passed",
+    "openapi_analytics_routes": 6,
+    "alembic_mysql_sql": "passed"
+  },
+  "frontend": {
+    "typescript": "passed",
+    "eslint": "passed",
+    "vitest": {"passed": 2, "failed": 0},
+    "production_build": "passed",
+    "routes": ["/", "/players", "/players/[id]", "/discover", "/rankings", "/compare"],
+    "npm_audit_vulnerabilities": 0
+  },
+  "integration": {
+    "home_http_status": 200,
+    "players_http_status": 200,
+    "backend_health": "ok",
+    "mysql_player_search": "passed",
+    "ai_ranking_api": "passed"
+  },
+  "deployment": {
+    "railway_config": true,
+    "render_blueprint": true,
+    "vercel_config": true,
+    "dockerfiles": true,
+    "docker_build_executed": false,
+    "docker_build_note": "Docker CLI is not installed in the local validation environment."
+  }
+}

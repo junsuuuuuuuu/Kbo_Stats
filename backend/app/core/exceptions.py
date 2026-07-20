@@ -1,0 +1,35 @@
+"""HTTP 프레임워크와 분리된 도메인/애플리케이션 예외."""
+
+from typing import Any
+
+
+class ApplicationError(Exception):
+    """사용자에게 안전하게 노출할 수 있는 애플리케이션 예외의 기반 클래스."""
+
+    code = "APPLICATION_ERROR"
+    status_code = 400
+
+    def __init__(self, message: str, details: Any | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        self.details = details
+
+
+class PlayerNotFoundError(ApplicationError):
+    """요청한 player_id가 존재하지 않을 때 발생한다."""
+
+    code = "PLAYER_NOT_FOUND"
+    status_code = 404
+
+    def __init__(self, player_id: int) -> None:
+        super().__init__("선수를 찾을 수 없습니다.", {"player_id": player_id})
+
+
+class AnalyticsNotAvailableError(ApplicationError):
+    """선수 기록이 분석 기능의 최소 표본 조건을 만족하지 못한 경우."""
+
+    code = "ANALYTICS_NOT_AVAILABLE"
+    status_code = 404
+
+    def __init__(self, message: str, details: Any | None = None) -> None:
+        super().__init__(message, details)
