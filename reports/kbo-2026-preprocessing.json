@@ -1,0 +1,35 @@
+{
+  "sources": {
+    "batting": {
+      "path": "data/raw/kbo_batting_stats_season_2026_partial.csv",
+      "sha256": "5cea0dd40ccf08908193ad313480e9e23c0194a3029c91cf1ddc7983b17655f5"
+    },
+    "pitching": {
+      "path": "data/raw/kbo_pitching_stats_season_2026_partial.csv",
+      "sha256": "339d96def9513cd93a98d67f21478adfaa59fe7e9423706f6e3ef99a864bb397"
+    }
+  },
+  "outputs": {
+    "batting": {
+      "path": "data/processed/2026/batting_stats_clean.csv",
+      "sha256": "c2bcf139e3ab74c74577a24016f7690378d2b1cdd94540650dd865b6e80a0dd9",
+      "rows": 327,
+      "columns": 40
+    },
+    "pitching": {
+      "path": "data/processed/2026/pitching_stats_clean.csv",
+      "sha256": "a8ee1ee51ab6194768b98efab7ff627c9329c4657c43d44d30d3d1606564be19",
+      "rows": 271,
+      "columns": 36
+    }
+  },
+  "rules": [
+    "원본 컬럼명을 snake_case 영문 의미명으로 변환",
+    "빈 문자열과 '-' 비율값을 NULL로 변환",
+    "생년과 시즌이 증명하는 나이 오기 교정 및 age_was_corrected 추가",
+    "height_weight에서 height_cm, weight_kg 파생",
+    "0cm/0kg 등 허용 범위 밖의 미입력 신체 정보는 NULL로 변환",
+    "야구식 IP 혼합 분수를 innings_pitched_outs로 변환",
+    "원본 행 삭제 및 통계값 임의 대치 없음"
+  ]
+}

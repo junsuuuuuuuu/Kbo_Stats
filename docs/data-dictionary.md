@@ -2,7 +2,8 @@
 
 ## 1. 데이터셋 기준
 
-- 원본 범위: 1982~2025 시즌
+- 완결 시즌 원본 범위: 1982~2025 시즌
+- 진행 시즌 snapshot: 2026 시즌(`as_of_date` 기준 누적 기록, ML 학습 제외)
 - 원본 인코딩: UTF-8
 - 핵심키: `player_id + season + team`
 - 선수 식별: 이름이 아닌 KBO `player_id` 사용
@@ -32,6 +33,8 @@
 | `season` | integer | N | 시즌 연도 |
 | `team` | string | N | 해당 시즌 원본 팀명 |
 | `age_was_corrected` | boolean | N | 원본 나이를 생년 기준으로 교정했는지 여부 |
+| `is_partial` | boolean | N | 시즌 진행 중 snapshot 여부, 완결 데이터는 false |
+| `as_of_date` | date | Y | 진행 중 기록의 수집 기준일 |
 
 `position`, `height_weight`, `career`, `draft`는 선수 페이지의 대표 정보일 수 있어
 반드시 시즌 당시 상태를 나타낸다고 가정하지 않는다.

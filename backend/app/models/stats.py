@@ -1,10 +1,13 @@
 """타자와 투수의 시즌 기록 모델."""
 
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
+    Date,
     ForeignKey,
     Index,
     Numeric,
@@ -66,6 +69,8 @@ class BattingSeasonStat(TimestampMixin, Base):
         ForeignKey("data_import_batches.import_batch_id", ondelete="RESTRICT"), nullable=False
     )
     season: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    is_partial: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    as_of_date: Mapped[date | None] = mapped_column(Date)
     position_code: Mapped[str] = mapped_column(String(5), nullable=False)
     games: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     plate_appearances: Mapped[int] = mapped_column(SmallInteger, nullable=False)
@@ -138,6 +143,8 @@ class PitchingSeasonStat(TimestampMixin, Base):
         ForeignKey("data_import_batches.import_batch_id", ondelete="RESTRICT"), nullable=False
     )
     season: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    is_partial: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    as_of_date: Mapped[date | None] = mapped_column(Date)
     earned_run_average: Mapped[Decimal | None] = mapped_column(Numeric(7, 3))
     games: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     complete_games: Mapped[int] = mapped_column(SmallInteger, nullable=False)

@@ -19,6 +19,7 @@ htmlcov/
 *.db
 *.sqlite3
 data/raw/*.csv
+data/processed/2026/
 
 # Frontend
 node_modules/

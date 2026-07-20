@@ -1,5 +1,7 @@
 """CSV 적재기의 DB 비종속 변환 규칙 테스트."""
 
+from datetime import date
+
 import pytest
 
 from app.database.importer import (
@@ -7,6 +9,7 @@ from app.database.importer import (
     build_player_records,
     build_profile_records,
     normalize_search_name,
+    snapshot_metadata,
 )
 
 
@@ -41,3 +44,15 @@ def test_profile_coalesces_later_non_null_physical_data() -> None:
 
     assert profile["height_cm"] == 180
     assert profile["weight_kg"] == 80
+
+
+def test_partial_snapshot_requires_and_parses_as_of_date() -> None:
+    metadata = snapshot_metadata({"is_partial": "True", "as_of_date": "2026-07-20"})
+
+    assert metadata == {
+        "is_partial": True,
+        "as_of_date": date(2026, 7, 20),
+    }
+
+    with pytest.raises(ValueError, match="as_of_date"):
+        snapshot_metadata({"is_partial": "True", "as_of_date": ""})

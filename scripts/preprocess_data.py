@@ -35,6 +35,10 @@ COMMON_RENAME = {
     "Season": "season",
     "Team": "team",
 }
+SNAPSHOT_METADATA_RENAME = {
+    "AsOfDate": "as_of_date",
+    "IsPartial": "is_partial",
+}
 BATTING_RENAME = {
     **COMMON_RENAME,
     "G": "games",
@@ -121,10 +125,11 @@ def load_and_validate(path: Path, expected_columns: list[str]) -> pd.DataFrame:
 
     frame = pd.read_csv(path, dtype="string", keep_default_na=False, encoding="utf-8")
     actual_columns = frame.columns.tolist()
-    if actual_columns != expected_columns:
+    expected_with_snapshot = [*expected_columns, *SNAPSHOT_METADATA_RENAME]
+    if actual_columns not in (expected_columns, expected_with_snapshot):
         raise ValueError(
             f"{path} 스키마가 예상과 다릅니다. "
-            f"expected={expected_columns}, actual={actual_columns}"
+            f"expected={expected_columns} 또는 {expected_with_snapshot}, actual={actual_columns}"
         )
     if frame.duplicated(["Id", "Season", "Team"]).any():
         raise ValueError(f"{path}에 Id/Season/Team 중복키가 있습니다.")
@@ -141,12 +146,14 @@ def normalize_text_columns(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_physical_dimensions(frame: pd.DataFrame) -> pd.DataFrame:
-    """'183cm/88kg'를 숫자 키와 몸무게로 분리하되 원문도 보존한다."""
+    """신체 정보를 분리하고 KBO의 미입력 표기(0cm/0kg)는 NULL로 정규화한다."""
 
     result = frame.copy()
     extracted = result["height_weight"].str.extract(r"^(\d+)cm/(\d+)kg$")
-    result["height_cm"] = pd.to_numeric(extracted[0], errors="coerce").astype("Int64")
-    result["weight_kg"] = pd.to_numeric(extracted[1], errors="coerce").astype("Int64")
+    height = pd.to_numeric(extracted[0], errors="coerce")
+    weight = pd.to_numeric(extracted[1], errors="coerce")
+    result["height_cm"] = height.where(height.between(140, 230)).astype("Int64")
+    result["weight_kg"] = weight.where(weight.between(40, 180)).astype("Int64")
     return result
 
 
@@ -165,12 +172,25 @@ def correct_verified_age(frame: pd.DataFrame) -> pd.DataFrame:
 def prepare_common(frame: pd.DataFrame, rename_map: dict[str, str]) -> pd.DataFrame:
     """두 데이터셋이 공유하는 이름, 타입, 신체 정보와 나이를 정제한다."""
 
-    result = normalize_text_columns(frame).rename(columns=rename_map)
+    result = normalize_text_columns(frame).rename(
+        columns={**rename_map, **SNAPSHOT_METADATA_RENAME}
+    )
     result["player_id"] = pd.to_numeric(result["player_id"], errors="raise").astype("Int64")
     result["season"] = pd.to_numeric(result["season"], errors="raise").astype("Int64")
     result["birth_date"] = pd.to_datetime(result["birth_date"], errors="raise")
     result = correct_verified_age(result)
     result = add_physical_dimensions(result)
+    if "is_partial" in result.columns:
+        normalized_partial = result["is_partial"].str.lower().map(
+            {"true": True, "false": False}
+        )
+        if normalized_partial.isna().any():
+            raise ValueError("IsPartial은 true 또는 false여야 합니다.")
+        result["is_partial"] = normalized_partial.astype("boolean")
+        parsed_as_of = pd.to_datetime(result["as_of_date"], errors="coerce")
+        if parsed_as_of.isna().any():
+            raise ValueError("진행 시즌 snapshot에는 유효한 AsOfDate가 필요합니다.")
+        result["as_of_date"] = parsed_as_of.dt.date
     return result
 
 
@@ -237,18 +257,24 @@ def write_manifest(
 
     manifest = {
         "sources": {
-            "batting": {"path": str(batting_source), "sha256": file_sha256(batting_source)},
-            "pitching": {"path": str(pitching_source), "sha256": file_sha256(pitching_source)},
+            "batting": {
+                "path": batting_source.as_posix(),
+                "sha256": file_sha256(batting_source),
+            },
+            "pitching": {
+                "path": pitching_source.as_posix(),
+                "sha256": file_sha256(pitching_source),
+            },
         },
         "outputs": {
             "batting": {
-                "path": str(batting_output),
+                "path": batting_output.as_posix(),
                 "sha256": file_sha256(batting_output),
                 "rows": len(batting),
                 "columns": len(batting.columns),
             },
             "pitching": {
-                "path": str(pitching_output),
+                "path": pitching_output.as_posix(),
                 "sha256": file_sha256(pitching_output),
                 "rows": len(pitching),
                 "columns": len(pitching.columns),
@@ -259,6 +285,7 @@ def write_manifest(
             "빈 문자열과 '-' 비율값을 NULL로 변환",
             "생년과 시즌이 증명하는 나이 오기 교정 및 age_was_corrected 추가",
             "height_weight에서 height_cm, weight_kg 파생",
+            "0cm/0kg 등 허용 범위 밖의 미입력 신체 정보는 NULL로 변환",
             "야구식 IP 혼합 분수를 innings_pitched_outs로 변환",
             "원본 행 삭제 및 통계값 임의 대치 없음",
         ],

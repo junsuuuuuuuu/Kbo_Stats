@@ -38,11 +38,13 @@ export default function PlayerDetailPage() {
   const rows = useMemo(() => role === "batting" ? seasons.data?.batting ?? [] : seasons.data?.pitching ?? [], [role, seasons.data]);
   const latest = rows.at(-1);
   const latestSeason = latest?.season;
+  const latestCompleted = rows.findLast((row) => !row.is_partial);
+  const analysisSeason = latestCompleted?.season;
   const growthMetrics = role === "batting" ? "batting_average,on_base_plus_slugging,home_runs" : "earned_run_average,strikeouts,walks_allowed";
-  const prediction = useQuery({ queryKey: ["prediction", role, playerId], queryFn: () => api.prediction(role, playerId), enabled: latestSeason === 2025 });
+  const prediction = useQuery({ queryKey: ["prediction", role, playerId], queryFn: () => api.prediction(role, playerId), enabled: analysisSeason === 2025 });
   const growth = useQuery({ queryKey: ["growth", role, playerId], queryFn: () => api.growth(role, playerId, growthMetrics), enabled: rows.length > 0 });
   const peak = useQuery({ queryKey: ["peak", role, playerId], queryFn: () => api.peak(role, playerId), enabled: rows.length >= 3 });
-  const similar = useQuery({ queryKey: ["similar", role, playerId, latestSeason], queryFn: () => api.similar(role, playerId, latestSeason), enabled: Boolean(latestSeason) });
+  const similar = useQuery({ queryKey: ["similar", role, playerId, analysisSeason], queryFn: () => api.similar(role, playerId, analysisSeason), enabled: Boolean(analysisSeason) });
 
   if (player.isLoading || seasons.isLoading) return <div className="page"><LoadingPanel /></div>;
   if (player.isError || seasons.isError) return <div className="page"><ErrorPanel error={player.error ?? seasons.error} /></div>;
@@ -64,7 +66,7 @@ export default function PlayerDetailPage() {
     <div className="page">
       <header className="player-heading">
         <div>
-          <span className="eyebrow">PLAYER INTELLIGENCE · {latestSeason ?? "—"}</span>
+          <span className="eyebrow">PLAYER INTELLIGENCE · {latestSeason ?? "—"}{latest?.is_partial ? " 진행 중" : ""}</span>
           <h1>{player.data?.player_name}</h1>
           <p className="muted">{player.data?.birth_date} · {latest?.team ?? "팀 정보 없음"}</p>
         </div>
@@ -77,7 +79,8 @@ export default function PlayerDetailPage() {
       <section className="metric-grid">
         {latestMetrics.map((metric) => {
           const value = latest?.[metric];
-          return <MetricCard key={metric} label={labels[metric]} value={formatMetric(metric, value == null ? null : Number(value))} hint={`${latestSeason ?? ""} 시즌`} />;
+          const snapshotHint = latest?.is_partial && latest.as_of_date ? ` · ${latest.as_of_date} 기준` : "";
+          return <MetricCard key={metric} label={labels[metric]} value={formatMetric(metric, value == null ? null : Number(value))} hint={`${latestSeason ?? ""} 시즌${snapshotHint}`} />;
         })}
       </section>
 
@@ -88,7 +91,7 @@ export default function PlayerDetailPage() {
         </div>
         <div className="panel">
           <div className="panel-header"><h2>다음 시즌 AI 예측</h2><BrainCircuit size={20} /></div>
-          {latestSeason !== 2025 ? <div className="state-panel"><p>2025 시즌 기록이 있는 현역 선수에게 제공됩니다.</p></div> : prediction.isLoading ? <LoadingPanel /> : prediction.isError ? <ErrorPanel error={prediction.error} /> : (
+          {analysisSeason !== 2025 ? <div className="state-panel"><p>2025 완결 시즌 기록이 있는 현역 선수에게 제공됩니다.</p></div> : prediction.isLoading ? <LoadingPanel /> : prediction.isError ? <ErrorPanel error={prediction.error} /> : (
             <div className="metric-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
               {prediction.data?.predictions.map((item) => <MetricCard key={item.target} label={labels[item.target] ?? item.target} value={formatMetric(item.target, item.prediction)} hint={`이전 ${formatMetric(item.target, item.previous_season_value)}`} />)}
             </div>

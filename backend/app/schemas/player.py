@@ -104,6 +104,8 @@ class BattingSeasonResponse(BaseModel):
     """그래프와 표에 직접 사용할 수 있는 타자 시즌 기록."""
 
     season: int
+    is_partial: bool
+    as_of_date: date | None
     age: int
     team: str
     position: str
@@ -137,6 +139,8 @@ class BattingSeasonResponse(BaseModel):
 
         return cls(
             season=stat.season,
+            is_partial=stat.is_partial,
+            as_of_date=stat.as_of_date,
             age=stat.season - birth_date.year,
             team=stat.team.team_name,
             position=stat.position_code,
@@ -170,6 +174,8 @@ class PitchingSeasonResponse(BaseModel):
     """그래프와 표에 직접 사용할 수 있는 투수 시즌 기록."""
 
     season: int
+    is_partial: bool
+    as_of_date: date | None
     age: int
     team: str
     earned_run_average: float | None
@@ -206,6 +212,8 @@ class PitchingSeasonResponse(BaseModel):
 
         return cls(
             season=stat.season,
+            is_partial=stat.is_partial,
+            as_of_date=stat.as_of_date,
             age=stat.season - birth_date.year,
             team=stat.team.team_name,
             earned_run_average=stat.earned_run_average,

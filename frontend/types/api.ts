@@ -35,6 +35,8 @@ export interface PlayerDetail {
 
 export interface BattingSeason {
   season: number;
+  is_partial: boolean;
+  as_of_date: string | null;
   age: number;
   team: string;
   position: string;
@@ -49,11 +51,13 @@ export interface BattingSeason {
   stolen_bases: number;
   walks: number;
   strikeouts: number;
-  [key: string]: string | number | null;
+  [key: string]: string | number | boolean | null;
 }
 
 export interface PitchingSeason {
   season: number;
+  is_partial: boolean;
+  as_of_date: string | null;
   age: number;
   team: string;
   earned_run_average: number | null;
@@ -66,7 +70,7 @@ export interface PitchingSeason {
   innings_pitched_outs: number;
   strikeouts: number;
   walks_allowed: number;
-  [key: string]: string | number | null;
+  [key: string]: string | number | boolean | null;
 }
 
 export interface PlayerSeasons {

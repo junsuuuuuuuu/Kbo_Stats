@@ -70,6 +70,22 @@ def nullable_decimal(value: str) -> Decimal | None:
     return Decimal(value) if value else None
 
 
+def snapshot_metadata(row: dict[str, str]) -> dict[str, Any]:
+    """선택적인 진행 시즌 메타데이터를 DB 타입으로 변환한다."""
+
+    raw_partial = row.get("is_partial", "False").strip().lower()
+    if raw_partial not in {"true", "false"}:
+        raise ValueError("is_partial은 True 또는 False여야 합니다.")
+    is_partial = raw_partial == "true"
+    raw_as_of_date = row.get("as_of_date", "").strip()
+    if is_partial and not raw_as_of_date:
+        raise ValueError("진행 시즌 기록에는 as_of_date가 필요합니다.")
+    return {
+        "is_partial": is_partial,
+        "as_of_date": date.fromisoformat(raw_as_of_date) if raw_as_of_date else None,
+    }
+
+
 def normalize_search_name(player_name: str) -> str:
     """PlayerService 검색 정규화 규칙과 동일한 값을 생성한다."""
 
@@ -176,6 +192,7 @@ def build_batting_stats(
             "import_batch_id": import_batch_id,
             "season": int(row["season"]),
             "position_code": row["position"],
+            **snapshot_metadata(row),
         }
         record.update({column: int(row[column]) for column in count_columns})
         record.update({column: nullable_decimal(row[column]) for column in rate_columns})
@@ -215,6 +232,7 @@ def build_pitching_stats(
             "season": int(row["season"]),
             "earned_run_average": nullable_decimal(row["earned_run_average"]),
             "winning_percentage": nullable_decimal(row["winning_percentage"]),
+            **snapshot_metadata(row),
         }
         record.update({column: int(row[column]) for column in count_columns})
         result.append(record)
@@ -286,6 +304,16 @@ def create_batch(
         )
     )
     if existing is not None:
+        if existing.status == "FAILED":
+            existing.source_file_name = source_file_name
+            existing.source_row_count = row_count
+            existing.imported_row_count = None
+            existing.quality_report = quality_report
+            existing.status = "RUNNING"
+            existing.started_at = utc_now_naive()
+            existing.finished_at = None
+            session.commit()
+            return existing.import_batch_id
         raise AlreadyImportedError(
             f"이미 적재한 원본입니다: dataset={dataset_type}, batch={existing.import_batch_id}"
         )
@@ -319,6 +347,7 @@ def import_dataset(
         "cleaned_file": str(cleaned_path),
         "cleaned_sha256": file_sha256(cleaned_path),
         "corrected_age_rows": sum(row["age_was_corrected"] == "True" for row in rows),
+        "partial_rows": sum(row.get("is_partial", "False").lower() == "true" for row in rows),
     }
     import_batch_id = create_batch(
         session,
