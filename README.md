@@ -104,3 +104,20 @@ python scripts/preprocess_data.py
 
 원본 및 정제 데이터의 공개·재배포 전에는 반드시
 [데이터 출처 및 사용 주의사항](docs/data-provenance.md)을 확인하세요.
+
+### 2026 시즌 진행 기록 수집
+
+KBO 공식 기록 페이지에서 2026 시즌 기록만 로컬 snapshot으로 수집할 수 있습니다.
+시즌 중 데이터이므로 수집일 기준의 미완료 기록이며 기존 1982~2025 학습 데이터에는
+자동으로 합치지 않습니다.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\fetch_kbo_2026.py --delay 1.0
+```
+
+- 결과: `data/raw/kbo_batting_stats_season_2026_partial.csv`
+- 결과: `data/raw/kbo_pitching_stats_season_2026_partial.csv`
+- 품질 요약: `reports/kbo-2026-snapshot.json`
+
+원본 snapshot은 Git에서 제외됩니다. 재수집 전 KBO 이용정책과 robots.txt를 확인하고,
+서버 부하 방지를 위해 요청 간격을 1초 미만으로 낮추지 마세요.

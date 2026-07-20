@@ -2,13 +2,20 @@
 
 ## 범위
 
-이 프로젝트는 사용자가 제공한 `batting_stats.csv`, `pitching_stats.csv` 두 파일만 원천
-데이터로 사용한다. 선수 식별에는 원본의 KBO `player_id`를 사용하며, `source_url`은 원본
-선수 페이지를 추적하기 위한 provenance 필드로 보존한다.
+모델 학습과 서비스의 기준 데이터는 사용자가 제공한 `batting_stats.csv`,
+`pitching_stats.csv` 두 파일이다. 선수 식별에는 원본의 KBO `player_id`를 사용하며,
+`source_url`은 원본 선수 페이지를 추적하기 위한 provenance 필드로 보존한다.
+
+2026 시즌 기록은 KBO 공식 선수 기록 페이지에서 2026-07-20에 별도 수집한 진행 중
+snapshot이다. `IsPartial=true`와 `AsOfDate`를 함께 저장하며, 완결 시즌 데이터와 혼동하지
+않도록 기존 전처리·DB 적재·모델 학습에는 자동 반영하지 않는다. 수집기는 실행 시
+robots.txt를 확인하고 요청 사이에 최소 1초 간격을 둔다.
 
 ## 저장소 정책
 
 - `data/raw` 원본 CSV는 `.gitignore`와 `.dockerignore`로 공개 저장소 및 이미지에서 제외한다.
+- 2026 snapshot도 원본 통계이므로 Git에서 제외하고, 저장소에는 재현용 수집 코드와
+  행 수·누락·중복을 기록한 품질 요약만 보관한다.
 - `data/processed`에는 전처리된 통계가 있으므로 공개 전 원데이터 제공처의 이용약관과
   재배포 허용 범위를 별도로 확인해야 한다.
 - 모델 artifact와 예측 결과도 원천 통계에서 파생된 데이터이므로 동일한 확인이 필요하다.

@@ -1,0 +1,45 @@
+{
+  "season": 2026,
+  "as_of_date": "2026-07-20",
+  "is_partial": true,
+  "source": "https://www.koreabaseball.com",
+  "started_at": "2026-07-20T23:06:58.515272+09:00",
+  "finished_at": "2026-07-20T23:08:58.098636+09:00",
+  "request_count": 112,
+  "minimum_request_delay_seconds": 1.0,
+  "new_player_profiles_fetched": 31,
+  "batting": {
+    "path": "data/raw/kbo_batting_stats_season_2026_partial.csv",
+    "row_count": 327,
+    "player_count": 327,
+    "team_count": 10,
+    "duplicate_player_team_count": 0,
+    "missing_required": {
+      "Id": 0,
+      "Player": 0,
+      "Team": 0,
+      "Season": 0,
+      "G": 0,
+      "PA": 0,
+      "AVG": 0,
+      "OPS": 0
+    }
+  },
+  "pitching": {
+    "path": "data/raw/kbo_pitching_stats_season_2026_partial.csv",
+    "row_count": 271,
+    "player_count": 271,
+    "team_count": 10,
+    "duplicate_player_team_count": 0,
+    "missing_required": {
+      "Id": 0,
+      "Player": 0,
+      "Team": 0,
+      "Season": 0,
+      "G": 0,
+      "IP": 0,
+      "ERA": 0,
+      "SO": 0
+    }
+  }
+}
