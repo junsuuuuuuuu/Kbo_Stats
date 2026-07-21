@@ -16,7 +16,7 @@ export function Header() {
     <header className="site-header">
       <Link href="/" className="brand">
         <span className="brand-mark"><Activity size={20} /></span>
-        <span>KBO <strong>AI LAB</strong></span>
+        <span>KBO <strong>분석</strong></span>
       </Link>
       <nav className="nav-links">
         {links.map(({ href, label, icon: Icon }) => (

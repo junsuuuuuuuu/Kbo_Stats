@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 
 import { GrowthChart, LineChart, PcaChart } from "@/components/charts";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
+import { CareerRecordDashboard } from "@/features/players/career-record-dashboard";
 import { api } from "@/lib/api";
 import { toChartNumber } from "@/lib/analytics";
 import { formatMetric } from "@/lib/metrics";
@@ -98,6 +99,8 @@ export default function PlayerDetailPage() {
           )}
         </div>
       </section>
+
+      <CareerRecordDashboard key={role} role={role} rows={rows} />
 
       <section className="section panel">
         <div className="panel-header"><div><span className="eyebrow">CAREER TRAJECTORY</span><h2>성장곡선과 변곡점</h2></div><ChartNoAxesCombined size={20} /></div>

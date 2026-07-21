@@ -31,6 +31,15 @@ class PlayerValueRanker:
         frame = self._frames.get(role)
         if frame is None:
             frame = pd.read_csv(spec.source_path, low_memory=False)
+            # 완료 시즌 데이터와 별도로 관리되는 현재 시즌 스냅샷을 결합한다.
+            # 동일 선수·시즌이 두 파일에 있으면 최신 스냅샷을 우선한다.
+            current_snapshot_path = spec.source_path.parent / "2026" / spec.source_path.name
+            if current_snapshot_path.exists():
+                current_snapshot = pd.read_csv(current_snapshot_path, low_memory=False)
+                frame = pd.concat([frame, current_snapshot], ignore_index=True, sort=False)
+                frame = frame.drop_duplicates(
+                    subset=["player_id", "season"], keep="last"
+                ).reset_index(drop=True)
             self._frames[role] = frame
         return frame.copy(), spec
 

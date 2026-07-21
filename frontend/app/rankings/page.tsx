@@ -7,7 +7,66 @@ import { SectionTitle } from "@/components/ui";
 import { RankingTable } from "@/features/rankings/ranking-table";
 import type { AnalyticsRole } from "@/types/api";
 
+const RANKING_SEASONS = [2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
+
 export default function RankingsPage() {
   const [role, setRole] = useState<AnalyticsRole>("batting");
-  return <div className="page"><div className="player-heading"><SectionTitle eyebrow="Explainable AI Score" title="2025 선수 가치 랭킹" description="같은 시즌 안에서 공격·꾸준함·출장·나이·팀 기여를 0~100으로 평가합니다." /><Trophy size={42} color="var(--accent)" /></div><div className="panel"><div className="panel-header"><div className="tabs"><button className={role === "batting" ? "active" : ""} onClick={() => setRole("batting")}>타자</button><button className={role === "pitching" ? "active" : ""} onClick={() => setRole("pitching")}>투수</button></div><span className="muted">최소 타자 100 PA · 투수 30 IP</span></div><RankingTable role={role} limit={50} /></div></div>;
+  const [season, setSeason] = useState<number>(2026);
+  const isCurrentSeason = season === 2026;
+
+  return (
+    <div className="page">
+      <div className="player-heading">
+        <SectionTitle
+          eyebrow="Explainable AI Score"
+          title={`${season} 선수 가치 랭킹`}
+          description="같은 시즌 안에서 공격·꾸준함·출장·나이·팀 기여를 0~100으로 평가합니다."
+        />
+        <Trophy size={42} color="var(--accent)" />
+      </div>
+
+      <div className="panel">
+        <div className="ranking-controls">
+          <div className="tabs" aria-label="시즌 선택">
+            {RANKING_SEASONS.map((year) => (
+              <button
+                key={year}
+                className={season === year ? "active" : ""}
+                onClick={() => setSeason(year)}
+                type="button"
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+
+          <div className="tabs" aria-label="선수 유형 선택">
+            <button
+              className={role === "batting" ? "active" : ""}
+              onClick={() => setRole("batting")}
+              type="button"
+            >
+              타자
+            </button>
+            <button
+              className={role === "pitching" ? "active" : ""}
+              onClick={() => setRole("pitching")}
+              type="button"
+            >
+              투수
+            </button>
+          </div>
+        </div>
+
+        <p className="ranking-notice">
+          {isCurrentSeason
+            ? "2026 랭킹은 2026-07-20 기준 진행 중 기록입니다. 시즌 종료 후 점수가 달라질 수 있습니다."
+            : `${season} 정규시즌 기록 기준입니다.`}
+          {" · "}최소 타자 100 PA · 투수 30 IP
+        </p>
+
+        <RankingTable role={role} season={season} limit={50} />
+      </div>
+    </div>
+  );
 }

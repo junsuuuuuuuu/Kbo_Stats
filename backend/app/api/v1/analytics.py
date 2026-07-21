@@ -137,7 +137,7 @@ def peak_prediction(
 def value_rankings(
     service: AnalyticsServiceDependency,
     role: AnalyticsRole,
-    season: Annotated[int, Query(ge=1982, le=2025)] = 2025,
+    season: Annotated[int, Query(ge=1982, le=2026)] = 2025,
     team: Annotated[str | None, Query(max_length=30)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 30,
 ) -> dict:

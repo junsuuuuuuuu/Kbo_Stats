@@ -164,5 +164,7 @@ Service 선수 없음   → PLAYER_NOT_FOUND / 404
 | GET | `/analytics/peak/{role}/{player_id}` | Peak Age와 Peak 기록 예측 |
 | GET | `/analytics/rankings` | 시즌·팀별 AI 가치 랭킹 |
 
+`/analytics/rankings`의 `season`은 1982~2026을 허용한다. 2026 응답은 최신 수집일 기준의 진행 중 기록으로 계산되며 시즌 종료 전까지 값이 달라질 수 있다.
+
 분석 최소 표본을 만족하지 못하면 `404 ANALYTICS_NOT_AVAILABLE`을 반환한다. 실제 Query의
 범위, 기본값과 모든 응답 필드는 실행 중인 `/docs`의 OpenAPI 문서를 단일 기준으로 사용한다.

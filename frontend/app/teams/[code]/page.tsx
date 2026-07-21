@@ -1,11 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, UsersRound } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { TeamLogo } from "@/components/team-logo";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { RosterMember } from "@/types/api";
@@ -50,7 +51,9 @@ export default function TeamRosterPage() {
           <h1>{team?.team_name}</h1>
           <p className="muted">KBO 공식 1군 선수 등록 현황</p>
         </div>
-        <span className="team-mark large"><UsersRound size={28} /></span>
+        {team ? (
+          <TeamLogo teamCode={team.team_code} teamName={team.team_name} size="large" />
+        ) : null}
       </header>
 
       <section className="metric-grid">

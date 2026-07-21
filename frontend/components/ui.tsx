@@ -16,6 +16,6 @@ export function ScoreBar({ label, value }: { label: string; value: number }) {
   return <div className="score-row"><div><span>{label.replaceAll("_", " ")}</span><b>{value.toFixed(1)}</b></div><div className="score-track"><i style={{ width: `${Math.min(100, value)}%` }} /></div></div>;
 }
 
-export function MetricCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return <div className="metric-card"><span>{label}</span><strong>{value}</strong>{hint && <small>{hint}</small>}</div>;
+export function MetricCard({ label, value, hint, description }: { label: string; value: string; hint?: string; description?: string }) {
+  return <div className="metric-card"><span aria-label={description ? `${label}: ${description}` : undefined} className={description ? "metric-label-help" : undefined} data-tooltip={description} tabIndex={description ? 0 : undefined} title={description}>{label}</span><strong>{value}</strong>{hint && <small>{hint}</small>}</div>;
 }

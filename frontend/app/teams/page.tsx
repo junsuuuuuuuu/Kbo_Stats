@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, UsersRound } from "lucide-react";
 import Link from "next/link";
 
+import { TeamLogo } from "@/components/team-logo";
 import { ErrorPanel, LoadingPanel, SectionTitle } from "@/components/ui";
 import { api } from "@/lib/api";
 
@@ -29,7 +30,7 @@ export default function TeamsPage() {
           {teams.data?.items.map((team) => (
             <Link className="feature-card team-card" href={`/teams/${team.team_code}`} key={team.team_code}>
               <div className="team-card-heading">
-                <span className="team-mark">{team.team_name.slice(0, 2)}</span>
+                <TeamLogo teamCode={team.team_code} teamName={team.team_name} />
                 <ArrowRight size={18} />
               </div>
               <h3>{team.team_name}</h3>

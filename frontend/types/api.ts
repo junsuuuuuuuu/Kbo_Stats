@@ -42,15 +42,27 @@ export interface BattingSeason {
   position: string;
   games: number;
   plate_appearances: number;
+  at_bats: number;
+  runs: number;
+  hits: number;
+  doubles: number;
+  triples: number;
   batting_average: number | null;
   on_base_percentage: number | null;
   slugging_percentage: number | null;
   on_base_plus_slugging: number | null;
   home_runs: number;
+  total_bases: number;
   runs_batted_in: number;
   stolen_bases: number;
+  caught_stealing: number;
   walks: number;
+  hit_by_pitch: number;
   strikeouts: number;
+  grounded_into_double_play: number;
+  sacrifice_flies: number;
+  sacrifice_hits: number;
+  errors: number;
   [key: string]: string | number | boolean | null;
 }
 
@@ -62,14 +74,23 @@ export interface PitchingSeason {
   team: string;
   earned_run_average: number | null;
   games: number;
+  complete_games: number;
+  shutouts: number;
   wins: number;
   losses: number;
   saves: number;
   holds: number;
+  winning_percentage: number | null;
+  batters_faced: number;
   innings_pitched: string;
   innings_pitched_outs: number;
+  hits_allowed: number;
+  home_runs_allowed: number;
   strikeouts: number;
   walks_allowed: number;
+  hit_batters: number;
+  runs_allowed: number;
+  earned_runs: number;
   [key: string]: string | number | boolean | null;
 }
 

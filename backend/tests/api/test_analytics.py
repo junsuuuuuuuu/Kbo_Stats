@@ -21,6 +21,19 @@ async def test_ranking_api_returns_typed_top_players(client: AsyncClient) -> Non
     assert "max-age=60" in response.headers["cache-control"]
 
 
+async def test_2026_ranking_uses_current_snapshot_team(client: AsyncClient) -> None:
+    response = await client.get(
+        "/api/v1/analytics/rankings",
+        params={"role": "batting", "season": 2026, "limit": 100},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    kang_baekho = next(item for item in body["items"] if item["player_id"] == 68050)
+    assert body["season"] == 2026
+    assert kang_baekho["team"] == "한화"
+
+
 async def test_peak_api_loads_saved_models(client: AsyncClient) -> None:
     response = await client.get("/api/v1/analytics/peak/batting/71837")
 
