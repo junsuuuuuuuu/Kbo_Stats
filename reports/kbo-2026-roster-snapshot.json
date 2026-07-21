@@ -1,0 +1,39 @@
+{
+  "season": 2026,
+  "as_of_date": "2026-07-20",
+  "is_active_roster_snapshot": true,
+  "source": "https://www.koreabaseball.com/Player/Register.aspx",
+  "started_at": "2026-07-21T12:59:51.204998+09:00",
+  "finished_at": "2026-07-21T13:00:04.822412+09:00",
+  "request_count": 12,
+  "minimum_request_delay_seconds": 1.0,
+  "path": "data/raw/kbo_team_rosters_2026_partial.csv",
+  "row_count": 282,
+  "player_count": 282,
+  "team_count": 10,
+  "duplicate_team_player_count": 0,
+  "missing_required": {
+    "AsOfDate": 0,
+    "TeamCode": 0,
+    "Team": 0,
+    "PlayerId": 0,
+    "Player": 0,
+    "Position": 0,
+    "UniformNumber": 0,
+    "BatThrow": 0,
+    "Born": 0,
+    "URL": 0
+  },
+  "rows_by_team": {
+    "KIA": 28,
+    "KT": 30,
+    "LG": 29,
+    "NC": 27,
+    "SSG": 27,
+    "두산": 30,
+    "롯데": 28,
+    "삼성": 27,
+    "키움": 28,
+    "한화": 28
+  }
+}

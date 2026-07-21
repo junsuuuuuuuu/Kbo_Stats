@@ -79,6 +79,42 @@ export interface PlayerSeasons {
   pitching: PitchingSeason[];
 }
 
+export interface TeamSummary {
+  team_id: number;
+  team_code: string;
+  team_name: string;
+  season: number;
+  as_of_date: string;
+  roster_count: number;
+  pitcher_count: number;
+  hitter_count: number;
+}
+
+export interface TeamList {
+  season: number;
+  items: TeamSummary[];
+}
+
+export interface RosterMember {
+  player_id: number;
+  player_name: string;
+  uniform_number: string;
+  position: "P" | "C" | "IF" | "OF";
+  position_label: string;
+  bat_side: "L" | "R" | "S";
+  throw_side: "L" | "R";
+  birth_date: string;
+  age: number;
+  height_cm: number | null;
+  weight_kg: number | null;
+  source_url: string;
+}
+
+export interface TeamRoster {
+  team: TeamSummary;
+  members: RosterMember[];
+}
+
 export interface PredictionResponse {
   player_id: number;
   role: AnalyticsRole;

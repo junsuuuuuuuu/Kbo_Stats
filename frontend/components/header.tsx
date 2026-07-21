@@ -1,10 +1,11 @@
-import { Activity, GitCompareArrows, Search, Sparkles, Trophy } from "lucide-react";
+import { Activity, GitCompareArrows, Search, Sparkles, Trophy, UsersRound } from "lucide-react";
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/players", label: "선수 검색", icon: Search },
+  { href: "/teams", label: "구단 로스터", icon: UsersRound },
   { href: "/discover", label: "AI 스카우팅", icon: Sparkles },
   { href: "/rankings", label: "가치 랭킹", icon: Trophy },
   { href: "/compare", label: "선수 비교", icon: GitCompareArrows },

@@ -25,6 +25,19 @@ class PlayerNotFoundError(ApplicationError):
         super().__init__("선수를 찾을 수 없습니다.", {"player_id": player_id})
 
 
+class TeamRosterNotFoundError(ApplicationError):
+    """요청 시즌과 구단 코드에 해당하는 로스터가 없을 때 발생한다."""
+
+    code = "TEAM_ROSTER_NOT_FOUND"
+    status_code = 404
+
+    def __init__(self, team_code: str, season: int) -> None:
+        super().__init__(
+            "구단 로스터를 찾을 수 없습니다.",
+            {"team_code": team_code, "season": season},
+        )
+
+
 class AnalyticsNotAvailableError(ApplicationError):
     """선수 기록이 분석 기능의 최소 표본 조건을 만족하지 못한 경우."""
 

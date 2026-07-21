@@ -3,8 +3,11 @@
 from datetime import date
 
 from app.models.player import Player, PlayerSourceProfile
+from app.models.roster import TeamRoster
 from app.models.stats import BattingSeasonStat, PitchingSeasonStat
+from app.models.team import Team
 from app.repositories.player import PlayerSearchCriteria
+from app.repositories.team import TeamRosterSnapshot, TeamRosterSummary
 
 
 def sample_player() -> Player:
@@ -60,3 +63,46 @@ class FakePlayerRepository:
     def list_pitching_seasons(self, _player_id: int) -> list[PitchingSeasonStat]:
         self.pitching_calls += 1
         return self.pitching_stats
+
+
+class FakeTeamRepository:
+    """구단 API 테스트용 최신 로스터 대역."""
+
+    def __init__(self) -> None:
+        summary = TeamRosterSummary(
+            team_id=1,
+            team_code="SS",
+            team_name="삼성",
+            season=2026,
+            as_of_date=date(2026, 7, 20),
+            roster_count=1,
+            pitcher_count=1,
+            hitter_count=0,
+        )
+        member = TeamRoster(
+            roster_id=1,
+            season=2026,
+            as_of_date=date(2026, 7, 20),
+            team_id=1,
+            team_code="SS",
+            player_id=68050,
+            position_code="P",
+            uniform_number="18",
+            bat_side="R",
+            throw_side="R",
+            height_cm=183,
+            weight_kg=92,
+            source_url="https://example.test/player/68050",
+            is_active=True,
+        )
+        member.player = sample_player()
+        member.team = Team(team_id=1, team_name="삼성")
+        self.snapshot: TeamRosterSnapshot | None = TeamRosterSnapshot(summary, [member])
+
+    def list_latest_rosters(self, _season: int) -> list[TeamRosterSummary]:
+        return [self.snapshot.summary] if self.snapshot is not None else []
+
+    def get_latest_roster(
+        self, _team_code: str, _season: int
+    ) -> TeamRosterSnapshot | None:
+        return self.snapshot

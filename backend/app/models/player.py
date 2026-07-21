@@ -28,6 +28,7 @@ class Player(TimestampMixin, Base):
     )
     batting_stats = relationship("BattingSeasonStat", back_populates="player")
     pitching_stats = relationship("PitchingSeasonStat", back_populates="player")
+    rosters = relationship("TeamRoster", back_populates="player")
 
 
 class PlayerSourceProfile(TimestampMixin, Base):

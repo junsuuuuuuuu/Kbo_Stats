@@ -8,8 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.database.session import get_db_session
 from app.repositories.player import SqlAlchemyPlayerRepository
+from app.repositories.team import SqlAlchemyTeamRepository
 from app.services.analytics import AnalyticsService
 from app.services.player import PlayerService
+from app.services.team import TeamService
 
 DatabaseSession = Annotated[Session, Depends(get_db_session)]
 
@@ -30,6 +32,24 @@ def get_player_service(repository: PlayerRepositoryDependency) -> PlayerService:
 
 
 PlayerServiceDependency = Annotated[PlayerService, Depends(get_player_service)]
+
+
+def get_team_repository(session: DatabaseSession) -> SqlAlchemyTeamRepository:
+    """request-scoped Session으로 구단 Repository를 생성한다."""
+
+    return SqlAlchemyTeamRepository(session)
+
+
+TeamRepositoryDependency = Annotated[SqlAlchemyTeamRepository, Depends(get_team_repository)]
+
+
+def get_team_service(repository: TeamRepositoryDependency) -> TeamService:
+    """구단 로스터 Service를 조립한다."""
+
+    return TeamService(repository)
+
+
+TeamServiceDependency = Annotated[TeamService, Depends(get_team_service)]
 
 
 @lru_cache

@@ -23,6 +23,7 @@ async def test_openapi_contains_versioned_player_routes(client: AsyncClient) -> 
     paths = response.json()["paths"]
     assert "/api/v1/players" in paths
     assert "/api/v1/players/{player_id}/seasons" in paths
+    assert "/api/v1/teams/{team_code}/roster" in paths
 
 
 async def test_search_response_and_query_normalization(

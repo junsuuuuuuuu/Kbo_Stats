@@ -49,6 +49,7 @@
 - 완료: 선수 성장곡선 분석
 - 완료: 선수 전성기 예측
 - 완료: AI 선수 가치 랭킹
+- 완료: 2026 구단별 1군 등록 로스터
 
 - 완료: FastAPI ML API와 Swagger
 - 완료: Next.js 반응형 UI와 Plotly 시각화
@@ -139,3 +140,24 @@ Set-Location backend
 
 API는 2026 기록에 `is_partial: true`와 수집 기준일 `as_of_date`를 반환합니다. 선수 화면의
 기록·그래프에는 2026을 표시하지만 AI 모델은 계속 2025까지의 완결 시즌만 사용합니다.
+
+### 2026 구단별 1군 로스터
+
+KBO 공식 선수 등록 현황에서 10개 구단의 날짜별 1군 등록 명단을 수집합니다. 감독과
+코치는 제외하며, 투수·포수·내야수·외야수만 기존 KBO `player_id`와 연결합니다.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\fetch_kbo_2026_rosters.py --delay 1.0
+
+Set-Location backend
+..\.venv\Scripts\python.exe -m alembic upgrade head
+..\.venv\Scripts\python.exe scripts\import_2026_rosters.py
+```
+
+- 화면: `/teams`, `/teams/{team_code}`
+- API: `GET /api/v1/teams?season=2026`
+- API: `GET /api/v1/teams/{team_code}/roster?season=2026`
+- 품질 요약: `reports/kbo-2026-roster-snapshot.json`
+
+등록 명단은 경기 출전 선수 전체나 구단 소속 선수 전체가 아니라 해당 기준일의 1군
+등록 snapshot입니다. 원본 CSV는 다른 KBO 원본 데이터와 동일하게 Git에서 제외됩니다.

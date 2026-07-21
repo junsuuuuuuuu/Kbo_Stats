@@ -1,5 +1,23 @@
 # 변경 이력
 
+## 2026-07-21
+
+### 추가
+
+- KBO 공식 선수 등록 현황의 2026 구단별 1군 로스터 수집기 추가
+- 10개 구단 등록 선수 282명 snapshot 및 품질 manifest 생성
+- 날짜별 로스터 보존을 위한 `team_rosters` 테이블과 Alembic migration 추가
+- 구단 목록 및 최신 로스터 FastAPI API 추가
+- 반응형 구단 카드 목록과 포지션 필터 로스터 화면 추가
+- 로스터 선수를 기존 선수 분석 페이지로 연결
+
+### 검증
+
+- KBO 선수 ID와 기존 DB 선수 282명 전원 매칭
+- MySQL 로스터 282행 적재
+- Backend 테스트 49개 통과 및 커버리지 66.57%
+- Frontend 테스트 6개, TypeScript, ESLint 및 production build 통과
+
 ## 2026-07-20
 
 ### 추가

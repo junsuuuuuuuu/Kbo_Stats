@@ -9,6 +9,8 @@ import type {
   PredictionResponse,
   RankingResponse,
   SimilarResponse,
+  TeamList,
+  TeamRoster,
 } from "@/types/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -42,6 +44,9 @@ export const api = {
     request<PlayerPage>("/players", { query: query || undefined, role, page, page_size: 30 }),
   player: (id: number) => request<PlayerDetail>(`/players/${id}`),
   seasons: (id: number) => request<PlayerSeasons>(`/players/${id}/seasons`),
+  teams: (season = 2026) => request<TeamList>("/teams", { season }),
+  teamRoster: (teamCode: string, season = 2026) =>
+    request<TeamRoster>(`/teams/${teamCode}/roster`, { season }),
   prediction: (role: AnalyticsRole, id: number) =>
     request<PredictionResponse>(`/analytics/predictions/${role}/${id}`),
   growth: (role: AnalyticsRole, id: number, metrics: string) =>
