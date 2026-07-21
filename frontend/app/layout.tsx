@@ -6,8 +6,8 @@ import { Providers } from "@/app/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KBO AI Player Analytics",
-  description: "1982~2025 KBO 기록 기반 AI 선수 분석 플랫폼",
+  title: "KBO Records — 선수 기록과 커리어 분석",
+  description: "1982~2025 KBO 기록을 탐색하고 선수의 커리어를 비교하는 데이터 플랫폼",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
