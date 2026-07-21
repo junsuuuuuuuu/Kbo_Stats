@@ -4,6 +4,7 @@ from datetime import date
 
 from app.models.player import Player, PlayerSourceProfile
 from app.models.roster import TeamRoster
+from app.models.standing import TeamStanding
 from app.models.stats import BattingSeasonStat, PitchingSeasonStat
 from app.models.team import Team
 from app.repositories.player import PlayerSearchCriteria
@@ -45,6 +46,8 @@ class FakePlayerRepository:
         self.pitching_calls = 0
         self.batting_stats: list[BattingSeasonStat] = []
         self.pitching_stats: list[PitchingSeasonStat] = []
+        self.metric_values: list[float] = []
+        self.defensive_efficiencies: dict[tuple[int, int], float] = {}
 
     def search(self, criteria: PlayerSearchCriteria) -> tuple[list[Player], int]:
         self.last_criteria = criteria
@@ -60,9 +63,20 @@ class FakePlayerRepository:
         self.batting_calls += 1
         return self.batting_stats
 
+    def list_league_batting_seasons(self, _season: int) -> list[BattingSeasonStat]:
+        return self.batting_stats
+
     def list_pitching_seasons(self, _player_id: int) -> list[PitchingSeasonStat]:
         self.pitching_calls += 1
         return self.pitching_stats
+
+    def team_defensive_efficiencies(
+        self, _team_seasons: set[tuple[int, int]]
+    ) -> dict[tuple[int, int], float]:
+        return self.defensive_efficiencies
+
+    def league_metric_values(self, _role: object, _season: int, _metric: str) -> list[float]:
+        return self.metric_values
 
 
 class FakeTeamRepository:
@@ -98,11 +112,32 @@ class FakeTeamRepository:
         member.player = sample_player()
         member.team = Team(team_id=1, team_name="삼성")
         self.snapshot: TeamRosterSnapshot | None = TeamRosterSnapshot(summary, [member])
+        self.standing = TeamStanding(
+            standing_id=1,
+            season=2026,
+            as_of_date=date(2026, 7, 20),
+            team_id=1,
+            team_code="SS",
+            ranking=1,
+            games=86,
+            wins=52,
+            losses=32,
+            draws=2,
+            winning_percentage=0.619,
+            games_behind=0,
+            recent_ten="8승0무2패",
+            streak="2승",
+            home_record="27-1-15",
+            away_record="25-1-17",
+            source_url="https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx",
+        )
+        self.standing.team = member.team
 
     def list_latest_rosters(self, _season: int) -> list[TeamRosterSummary]:
         return [self.snapshot.summary] if self.snapshot is not None else []
 
-    def get_latest_roster(
-        self, _team_code: str, _season: int
-    ) -> TeamRosterSnapshot | None:
+    def get_latest_roster(self, _team_code: str, _season: int) -> TeamRosterSnapshot | None:
         return self.snapshot
+
+    def get_latest_standing(self, _team_code: str, _season: int) -> TeamStanding | None:
+        return self.standing

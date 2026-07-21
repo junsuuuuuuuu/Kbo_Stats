@@ -11,6 +11,12 @@ class AnalyticsRole(StrEnum):
     PITCHING = "pitching"
 
 
+class RankingValueType(StrEnum):
+    OVERALL = "overall"
+    OFFENSE = "offense"
+    DEFENSE = "defense"
+
+
 class PredictionItem(BaseModel):
     target: str
     target_season: int
@@ -123,4 +129,5 @@ class RankingItem(BaseModel):
 class RankingResponse(BaseModel):
     role: AnalyticsRole
     season: int
+    value_type: RankingValueType
     items: list[RankingItem]

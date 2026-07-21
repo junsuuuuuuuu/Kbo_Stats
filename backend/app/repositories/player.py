@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, func, or_, select, tuple_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.player import Player
@@ -24,6 +24,34 @@ class PlayerSearchCriteria:
     limit: int = 20
 
 
+def calculate_defensive_efficiency(
+    *,
+    batters_faced: int,
+    hits_allowed: int,
+    home_runs_allowed: int,
+    walks_allowed: int,
+    hit_batters: int,
+    strikeouts: int,
+    errors: int,
+) -> float | None:
+    """공식 DER 식으로 인플레이 타구의 아웃 처리 비율을 계산한다."""
+
+    balls_in_play = (
+        batters_faced - home_runs_allowed - strikeouts - walks_allowed - hit_batters
+    )
+    if balls_in_play <= 0:
+        return None
+    outs_on_balls_in_play = (
+        batters_faced
+        - hits_allowed
+        - strikeouts
+        - walks_allowed
+        - hit_batters
+        - errors
+    )
+    return outs_on_balls_in_play / balls_in_play
+
+
 class PlayerRepository(Protocol):
     """Service가 구체적인 SQLAlchemy 구현에 의존하지 않도록 하는 계약."""
 
@@ -33,7 +61,15 @@ class PlayerRepository(Protocol):
 
     def list_batting_seasons(self, player_id: int) -> list[BattingSeasonStat]: ...
 
+    def list_league_batting_seasons(self, season: int) -> list[BattingSeasonStat]: ...
+
     def list_pitching_seasons(self, player_id: int) -> list[PitchingSeasonStat]: ...
+
+    def team_defensive_efficiencies(
+        self, team_seasons: set[tuple[int, int]]
+    ) -> dict[tuple[int, int], float]: ...
+
+    def league_metric_values(self, role: PlayerRole, season: int, metric: str) -> list[float]: ...
 
 
 class SqlAlchemyPlayerRepository:
@@ -122,6 +158,12 @@ class SqlAlchemyPlayerRepository:
         )
         return list(self._session.scalars(statement).unique().all())
 
+    def list_league_batting_seasons(self, season: int) -> list[BattingSeasonStat]:
+        """파생 타격 지표의 시즌 리그 기준값 계산용 원시 기록을 반환한다."""
+
+        statement = select(BattingSeasonStat).where(BattingSeasonStat.season == season)
+        return list(self._session.scalars(statement).all())
+
     def list_pitching_seasons(self, player_id: int) -> list[PitchingSeasonStat]:
         """투구 기록을 시즌, 팀 순서로 반환한다."""
 
@@ -132,3 +174,74 @@ class SqlAlchemyPlayerRepository:
             .order_by(PitchingSeasonStat.season, PitchingSeasonStat.team_id)
         )
         return list(self._session.scalars(statement).unique().all())
+
+    def team_defensive_efficiencies(
+        self, team_seasons: set[tuple[int, int]]
+    ) -> dict[tuple[int, int], float]:
+        """팀-시즌별 인플레이 타구 아웃 비율(DER)을 계산한다."""
+
+        if not team_seasons:
+            return {}
+        key_filter = tuple_(PitchingSeasonStat.season, PitchingSeasonStat.team_id).in_(
+            team_seasons
+        )
+        pitching_statement = (
+            select(
+                PitchingSeasonStat.season,
+                PitchingSeasonStat.team_id,
+                func.sum(PitchingSeasonStat.batters_faced),
+                func.sum(PitchingSeasonStat.hits_allowed),
+                func.sum(PitchingSeasonStat.home_runs_allowed),
+                func.sum(PitchingSeasonStat.walks_allowed),
+                func.sum(PitchingSeasonStat.hit_batters),
+                func.sum(PitchingSeasonStat.strikeouts),
+            )
+            .where(key_filter)
+            .group_by(PitchingSeasonStat.season, PitchingSeasonStat.team_id)
+        )
+        error_statement = (
+            select(
+                BattingSeasonStat.season,
+                BattingSeasonStat.team_id,
+                func.sum(BattingSeasonStat.errors),
+            )
+            .where(tuple_(BattingSeasonStat.season, BattingSeasonStat.team_id).in_(team_seasons))
+            .group_by(BattingSeasonStat.season, BattingSeasonStat.team_id)
+        )
+        errors = {
+            (season, team_id): int(error_count or 0)
+            for season, team_id, error_count in self._session.execute(error_statement)
+        }
+        results: dict[tuple[int, int], float] = {}
+        for season, team_id, faced, hits, home_runs, walks, hit_batters, strikeouts in (
+            self._session.execute(pitching_statement)
+        ):
+            efficiency = calculate_defensive_efficiency(
+                batters_faced=int(faced),
+                hits_allowed=int(hits),
+                home_runs_allowed=int(home_runs),
+                walks_allowed=int(walks),
+                hit_batters=int(hit_batters),
+                strikeouts=int(strikeouts),
+                errors=errors.get((season, team_id), 0),
+            )
+            if efficiency is not None:
+                results[(season, team_id)] = efficiency
+        return results
+
+    def league_metric_values(self, role: PlayerRole, season: int, metric: str) -> list[float]:
+        """동일 시즌의 최소 표본 충족 선수군에서 지표 값을 조회한다."""
+
+        model = BattingSeasonStat if role is PlayerRole.BATTING else PitchingSeasonStat
+        opportunity = (
+            BattingSeasonStat.plate_appearances >= 100
+            if role is PlayerRole.BATTING
+            else PitchingSeasonStat.innings_pitched_outs >= 90
+        )
+        column = getattr(model, metric)
+        statement = select(column).where(
+            model.season == season,
+            opportunity,
+            column.is_not(None),
+        )
+        return [float(value) for value in self._session.scalars(statement).all()]

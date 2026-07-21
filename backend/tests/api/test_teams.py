@@ -64,3 +64,14 @@ async def test_missing_team_roster_uses_common_error(
         "message": "구단 로스터를 찾을 수 없습니다.",
         "details": {"team_code": "XX", "season": 2026},
     }
+
+
+async def test_team_standing_returns_latest_snapshot(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/teams/SS/standing", params={"season": 2026})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ranking"] == 1
+    assert body["wins"] == 52
+    assert body["recent_ten"] == "8승0무2패"
+    assert body["team_name"] == "삼성"

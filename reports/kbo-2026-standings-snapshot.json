@@ -1,0 +1,10 @@
+{
+  "season": 2026,
+  "as_of_date": "2026-07-21",
+  "source": "https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx",
+  "request_count": 2,
+  "path": "data/raw/kbo_team_standings_2026_partial.csv",
+  "team_count": 10,
+  "leader": "삼성",
+  "total_games": 443
+}

@@ -11,7 +11,7 @@ from app.ml.growth import PlayerGrowthAnalyzer
 from app.ml.inference import NextSeasonPredictor
 from app.ml.peak_inference import PeakPredictor
 from app.ml.ranking import PlayerValueRanker
-from app.ml.ranking_config import RANKING_SPECS
+from app.ml.ranking_config import COMPONENT_LABELS
 from app.ml.recommendation import NumericCondition, PlayerRecommendationEngine
 from app.ml.recommendation_config import RECOMMENDATION_SPECS
 
@@ -185,12 +185,23 @@ class AnalyticsService:
                 str(exception), {"player_id": player_id}
             ) from exception
 
-    def rankings(self, role: str, season: int, team: str | None, limit: int) -> dict[str, Any]:
+    def rankings(
+        self,
+        role: str,
+        season: int,
+        team: str | None,
+        limit: int,
+        value_type: str = "overall",
+    ) -> dict[str, Any]:
+        if role == "pitching":
+            value_type = "overall"
         try:
-            result = self._ranking.rank_season(role, season=season, team=team, limit=limit)
+            result = self._ranking.rank_season(
+                role, season=season, team=team, limit=limit, value_type=value_type
+            )
         except ValueError as exception:
             raise AnalyticsNotAvailableError(str(exception)) from exception
-        components = list(RANKING_SPECS[role].component_weights)
+        components = [column for column in COMPONENT_LABELS if column in result.columns]
         items = []
         for record in result.to_dict(orient="records"):
             cleaned = _clean_record(record)
@@ -207,4 +218,4 @@ class AnalyticsService:
                     "reasons": cleaned["reasons"],
                 }
             )
-        return {"role": role, "season": season, "items": items}
+        return {"role": role, "season": season, "value_type": value_type, "items": items}

@@ -51,6 +51,20 @@ export interface BattingSeason {
   on_base_percentage: number | null;
   slugging_percentage: number | null;
   on_base_plus_slugging: number | null;
+  defensive_efficiency: number | null;
+  walk_percentage: number | null;
+  strikeout_percentage: number | null;
+  walk_to_strikeout_ratio: number | null;
+  isolated_power: number | null;
+  batting_average_on_balls_in_play: number | null;
+  stolen_base_percentage: number | null;
+  speed_score: number | null;
+  weighted_stolen_base_runs: number | null;
+  weighted_double_play_runs: number | null;
+  weighted_on_base_average: number | null;
+  weighted_runs_above_average: number | null;
+  weighted_runs_created: number | null;
+  weighted_runs_created_plus: number | null;
   home_runs: number;
   total_bases: number;
   runs_batted_in: number;
@@ -100,6 +114,59 @@ export interface PlayerSeasons {
   pitching: PitchingSeason[];
 }
 
+export interface PitchingAppearance {
+  game_date: string;
+  opponent: string;
+  appearance_type: string;
+  result: string | null;
+  game_era: number;
+  batters_faced: number;
+  innings_pitched: string;
+  hits_allowed: number;
+  home_runs_allowed: number;
+  walks_allowed: number;
+  hit_batters: number;
+  strikeouts: number;
+  runs_allowed: number;
+  earned_runs: number;
+  season_era: number;
+}
+
+export interface PitchingAppearances {
+  player_id: number;
+  season: number;
+  source_url: string;
+  items: PitchingAppearance[];
+}
+
+export interface BattingAppearance {
+  game_date: string;
+  opponent: string;
+  game_average: number | null;
+  plate_appearances: number;
+  at_bats: number;
+  runs: number;
+  hits: number;
+  doubles: number;
+  triples: number;
+  home_runs: number;
+  runs_batted_in: number;
+  stolen_bases: number;
+  caught_stealing: number;
+  walks: number;
+  hit_by_pitch: number;
+  strikeouts: number;
+  grounded_into_double_play: number;
+  season_average: number;
+}
+
+export interface BattingAppearances {
+  player_id: number;
+  season: number;
+  source_url: string;
+  items: BattingAppearance[];
+}
+
 export interface TeamSummary {
   team_id: number;
   team_code: string;
@@ -134,6 +201,40 @@ export interface RosterMember {
 export interface TeamRoster {
   team: TeamSummary;
   members: RosterMember[];
+}
+
+export interface TeamStanding {
+  season: number;
+  as_of_date: string;
+  team_code: string;
+  team_name: string;
+  ranking: number;
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winning_percentage: number;
+  games_behind: number;
+  recent_ten: string;
+  streak: string;
+  home_record: string;
+  away_record: string;
+  source_url: string;
+}
+
+export interface PlayerBenchmarks {
+  player_id: number;
+  role: AnalyticsRole;
+  season: number;
+  qualification: string;
+  items: Array<{
+    metric: string;
+    player_value: number;
+    league_average: number;
+    percentile: number;
+    sample_size: number;
+    higher_is_better: boolean;
+  }>;
 }
 
 export interface PredictionResponse {
@@ -211,6 +312,7 @@ export interface SimilarResponse {
 export interface RankingResponse {
   role: AnalyticsRole;
   season: number;
+  value_type: RankingValueType;
   items: Array<{
     season_rank: number;
     team_rank: number;
@@ -223,6 +325,8 @@ export interface RankingResponse {
     reasons: string[];
   }>;
 }
+
+export type RankingValueType = "overall" | "offense" | "defense";
 
 export interface DiscoveryResponse {
   role: AnalyticsRole;

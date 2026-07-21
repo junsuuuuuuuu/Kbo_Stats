@@ -51,6 +51,19 @@ def test_team_filter_preserves_league_and_team_rank() -> None:
     assert result["team_rank"].tolist() == [1, 2]
 
 
+def test_batting_value_types_recalculate_score_and_expose_defense_component() -> None:
+    frame = _batting_frame()
+    frame["errors"] = [0, 4, 8, 0, 4, 8]
+    ranker = PlayerValueRanker({"batting": frame})
+
+    offense = ranker.rank_season("batting", season=2025, value_type="offense")
+    defense = ranker.rank_season("batting", season=2025, value_type="defense")
+
+    assert "defense_score" in defense.columns
+    assert offense["ai_score"].tolist() != defense["ai_score"].tolist()
+    assert defense.iloc[0]["player_id"] == 1
+
+
 def test_consistency_does_not_join_non_consecutive_seasons() -> None:
     def row(player_id: int, season: int, ops: float) -> dict[str, float | int]:
         return {

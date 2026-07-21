@@ -16,7 +16,8 @@ class PlayerValueRanker:
 
     def __init__(self, frames: Mapping[str, pd.DataFrame] | None = None) -> None:
         self._frames = {key: value.copy() for key, value in (frames or {}).items()}
-        self._ranking_cache: dict[tuple[str, int], pd.DataFrame] = {}
+        self._uses_custom_frames = frames is not None
+        self._ranking_cache: dict[tuple[str, int, str], pd.DataFrame] = {}
         self._lock = RLock()
 
     @staticmethod
@@ -101,6 +102,35 @@ class PlayerValueRanker:
         components["speed_score"] = self._percentile(
             self._safe_rate(frame["stolen_bases"], frame["plate_appearances"])
         )
+        errors = frame["errors"] if "errors" in frame else pd.Series(0, index=frame.index)
+        games = frame["games"] if "games" in frame else pd.Series(1, index=frame.index)
+        error_avoidance = self._percentile(
+            self._safe_rate(errors, games), higher_is_better=False
+        )
+        defense_parts = [error_avoidance]
+        if not self._uses_custom_frames:
+            pitching, _ = self._load("pitching")
+            season = int(frame["season"].iloc[0])
+            pitching = pitching.loc[pitching["season"].eq(season)].copy()
+            if not pitching.empty:
+                totals = pitching.groupby("team")[[
+                    "batters_faced", "hits_allowed", "home_runs_allowed", "walks_allowed",
+                    "hit_batters", "strikeouts",
+                ]].sum()
+                team_errors = frame.groupby("team")["errors"].sum()
+                balls_in_play = (
+                    totals["batters_faced"] - totals["home_runs_allowed"]
+                    - totals["strikeouts"] - totals["walks_allowed"] - totals["hit_batters"]
+                ).replace(0, np.nan)
+                outs = (
+                    totals["batters_faced"] - totals["hits_allowed"] - totals["strikeouts"]
+                    - totals["walks_allowed"] - totals["hit_batters"]
+                    - totals.index.to_series().map(team_errors).fillna(0).to_numpy()
+                )
+                team_der = outs / balls_in_play
+                mapped_der = frame["team"].map(team_der)
+                defense_parts.append(self._percentile(mapped_der))
+        components["defense_score"] = pd.concat(defense_parts, axis=1).mean(axis=1)
         components["consistency_score"] = self._consistency(full_frame, frame, spec).to_numpy()
         components["availability_score"] = pd.concat(
             [self._percentile(frame["games"]), self._percentile(frame["plate_appearances"])],
@@ -152,12 +182,17 @@ class PlayerValueRanker:
         season: int | None = None,
         team: str | None = None,
         limit: int = 100,
+        value_type: str = "overall",
     ) -> pd.DataFrame:
         """해당 시즌 전체 후보로 점수를 계산한 뒤 선택적으로 팀 결과를 반환한다."""
 
         full_frame, spec = self._load(role)
         target_season = int(full_frame["season"].max()) if season is None else season
-        cache_key = (role, target_season)
+        if role == "pitching":
+            value_type = "overall"
+        if value_type not in {"overall", "offense", "defense"}:
+            raise ValueError(f"지원하지 않는 가치 구분입니다: {value_type}")
+        cache_key = (role, target_season, value_type)
         with self._lock:
             cached = self._ranking_cache.get(cache_key)
         if cached is not None:
@@ -180,17 +215,34 @@ class PlayerValueRanker:
             if role == "batting"
             else self._pitching_components(full_frame, frame, spec)
         )
+        if role == "batting" and value_type == "offense":
+            weights = {
+                "offense_score": 0.30,
+                "on_base_score": 0.25,
+                "power_score": 0.25,
+                "speed_score": 0.10,
+                "consistency_score": 0.10,
+            }
+        elif role == "batting" and value_type == "defense":
+            weights = {
+                "defense_score": 0.75,
+                "availability_score": 0.15,
+                "consistency_score": 0.10,
+            }
+        else:
+            weights = spec.component_weights
+
         result = frame.copy()
-        for column in spec.component_weights:
+        for column in weights:
             result[column] = components[column] * 100.0
         result["ai_score"] = sum(
-            result[column] * weight for column, weight in spec.component_weights.items()
+            result[column] * weight for column, weight in weights.items()
         )
         result["season_rank"] = result["ai_score"].rank(method="min", ascending=False).astype(int)
         result["team_rank"] = (
             result.groupby("team")["ai_score"].rank(method="min", ascending=False).astype(int)
         )
-        component_columns = list(spec.component_weights)
+        component_columns = list(weights)
         result["reasons"] = result[component_columns].apply(self._top_reasons, axis=1)
         result = result.sort_values(["ai_score", "player_id"], ascending=[False, True])
         with self._lock:

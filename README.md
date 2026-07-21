@@ -163,3 +163,24 @@ Set-Location backend
 
 등록 명단은 경기 출전 선수 전체나 구단 소속 선수 전체가 아니라 해당 기준일의 1군
 등록 snapshot입니다. 원본 CSV는 다른 KBO 원본 데이터와 동일하게 Git에서 제외됩니다.
+
+### 2026 구단 전적과 리그 비교
+
+KBO 공식 팀 순위에서 구단별 승·패·무, 승률, 게임 차, 최근 10경기, 연속 기록과
+홈·원정 전적을 날짜별 snapshot으로 수집합니다.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\fetch_kbo_2026_standings.py --delay 1.0
+
+Set-Location backend
+..\.venv\Scripts\python.exe -m alembic upgrade head
+..\.venv\Scripts\python.exe -m scripts.import_2026_standings
+```
+
+- API: `GET /api/v1/teams/{team_code}/standing?season=2026`
+- API: `GET /api/v1/players/{player_id}/benchmarks?role=BATTING&season=2026`
+- 품질 요약: `reports/kbo-2026-standings-snapshot.json`
+- 선수 백분위 표본: 타자 100타석 이상, 투수 30이닝 이상
+
+구단 상세 화면은 전적과 팀 내 타자·투수 가치 리더, 로스터 연령 구성을 함께 보여줍니다.
+선수 상세 화면은 동일 시즌 리그 평균·백분위와 데뷔·이적·커리어 하이 타임라인을 제공합니다.

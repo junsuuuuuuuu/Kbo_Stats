@@ -8,6 +8,7 @@ from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.roster import TeamRoster
+from app.models.standing import TeamStanding
 from app.models.team import Team
 
 
@@ -33,6 +34,8 @@ class TeamRepository(Protocol):
     def list_latest_rosters(self, season: int) -> list[TeamRosterSummary]: ...
 
     def get_latest_roster(self, team_code: str, season: int) -> TeamRosterSnapshot | None: ...
+
+    def get_latest_standing(self, team_code: str, season: int) -> TeamStanding | None: ...
 
 
 class SqlAlchemyTeamRepository:
@@ -75,9 +78,7 @@ class SqlAlchemyTeamRepository:
                 func.sum(case((TeamRoster.position_code == "P", 1), else_=0)).label(
                     "pitcher_count"
                 ),
-                func.sum(case((TeamRoster.position_code != "P", 1), else_=0)).label(
-                    "hitter_count"
-                ),
+                func.sum(case((TeamRoster.position_code != "P", 1), else_=0)).label("hitter_count"),
             )
             .join(Team, Team.team_id == TeamRoster.team_id)
             .join(
@@ -99,9 +100,7 @@ class SqlAlchemyTeamRepository:
         return statement
 
     def list_latest_rosters(self, season: int) -> list[TeamRosterSummary]:
-        rows = self._session.execute(
-            self._summary_statement(season).order_by(Team.team_name)
-        ).all()
+        rows = self._session.execute(self._summary_statement(season).order_by(Team.team_name)).all()
         return [self._summary_from_row(row) for row in rows]
 
     def get_latest_roster(self, team_code: str, season: int) -> TeamRosterSnapshot | None:
@@ -130,3 +129,17 @@ class SqlAlchemyTeamRepository:
         )
         members = list(self._session.scalars(statement).unique().all())
         return TeamRosterSnapshot(summary=summary, members=members)
+
+    def get_latest_standing(self, team_code: str, season: int) -> TeamStanding | None:
+        """해당 시즌 구단의 가장 최근 전적 스냅샷을 반환한다."""
+
+        latest_date = select(func.max(TeamStanding.as_of_date)).where(
+            TeamStanding.season == season,
+            TeamStanding.team_code == team_code,
+        )
+        statement = select(TeamStanding).where(
+            TeamStanding.season == season,
+            TeamStanding.team_code == team_code,
+            TeamStanding.as_of_date == latest_date.scalar_subquery(),
+        )
+        return self._session.scalar(statement)

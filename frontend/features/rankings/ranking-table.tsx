@@ -5,18 +5,19 @@ import Link from "next/link";
 
 import { ErrorPanel, LoadingPanel, ScoreBar } from "@/components/ui";
 import { api } from "@/lib/api";
-import type { AnalyticsRole } from "@/types/api";
+import type { AnalyticsRole, RankingValueType } from "@/types/api";
 
 interface RankingTableProps {
   role: AnalyticsRole;
   season?: number;
   limit?: number;
+  valueType?: RankingValueType;
 }
 
-export function RankingTable({ role, season = 2025, limit = 20 }: RankingTableProps) {
+export function RankingTable({ role, season = 2025, limit = 20, valueType = "overall" }: RankingTableProps) {
   const query = useQuery({
-    queryKey: ["rankings", role, season, limit],
-    queryFn: () => api.rankings(role, season, undefined, limit),
+    queryKey: ["rankings", role, season, limit, valueType],
+    queryFn: () => api.rankings(role, season, undefined, limit, valueType),
   });
 
   if (query.isLoading) {
@@ -32,7 +33,7 @@ export function RankingTable({ role, season = 2025, limit = 20 }: RankingTablePr
             <th>순위</th>
             <th>선수</th>
             <th>{season} 소속</th>
-            <th>AI Score</th>
+            <th>{role === "pitching" ? "투수 가치" : valueType === "offense" ? "공격 가치" : valueType === "defense" ? "수비 가치" : "종합 가치"}</th>
             <th>강점</th>
           </tr>
         </thead>
@@ -49,7 +50,7 @@ export function RankingTable({ role, season = 2025, limit = 20 }: RankingTablePr
               <td className="score">{item.ai_score.toFixed(1)}</td>
               <td style={{ minWidth: 190 }}>
                 <ScoreBar
-                  label={item.reasons[0] ?? "종합 가치"}
+                  label={item.reasons[0] ?? (role === "pitching" ? "투수 가치" : "종합 가치")}
                   value={item.ai_score}
                 />
               </td>

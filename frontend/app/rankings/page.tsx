@@ -5,13 +5,14 @@ import { useState } from "react";
 
 import { SectionTitle } from "@/components/ui";
 import { RankingTable } from "@/features/rankings/ranking-table";
-import type { AnalyticsRole } from "@/types/api";
+import type { AnalyticsRole, RankingValueType } from "@/types/api";
 
 const RANKING_SEASONS = [2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
 
 export default function RankingsPage() {
   const [role, setRole] = useState<AnalyticsRole>("batting");
   const [season, setSeason] = useState<number>(2026);
+  const [valueType, setValueType] = useState<RankingValueType>("overall");
   const isCurrentSeason = season === 2026;
 
   return (
@@ -50,13 +51,19 @@ export default function RankingsPage() {
             </button>
             <button
               className={role === "pitching" ? "active" : ""}
-              onClick={() => setRole("pitching")}
+              onClick={() => { setRole("pitching"); setValueType("overall"); }}
               type="button"
             >
               투수
             </button>
           </div>
         </div>
+
+        {role === "batting" ? <div className="value-type-tabs tabs" aria-label="타자 가치 구분">
+          <button className={valueType === "overall" ? "active" : ""} onClick={() => setValueType("overall")} type="button">종합</button>
+          <button className={valueType === "offense" ? "active" : ""} onClick={() => setValueType("offense")} type="button">공격</button>
+          <button className={valueType === "defense" ? "active" : ""} onClick={() => setValueType("defense")} type="button">수비</button>
+        </div> : null}
 
         <p className="ranking-notice">
           {isCurrentSeason
@@ -65,7 +72,7 @@ export default function RankingsPage() {
           {" · "}최소 타자 100 PA · 투수 30 IP
         </p>
 
-        <RankingTable role={role} season={season} limit={50} />
+        <RankingTable role={role} season={season} limit={50} valueType={valueType} />
       </div>
     </div>
   );

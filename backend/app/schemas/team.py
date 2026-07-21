@@ -5,6 +5,7 @@ from datetime import date
 from pydantic import BaseModel, Field
 
 from app.models.roster import TeamRoster
+from app.models.standing import TeamStanding
 from app.repositories.team import TeamRosterSnapshot, TeamRosterSummary
 
 POSITION_LABELS = {"P": "투수", "C": "포수", "IF": "내야수", "OF": "외야수"}
@@ -80,4 +81,44 @@ class TeamRosterResponse(BaseModel):
         return cls(
             team=TeamSummaryResponse.from_result(result.summary),
             members=[RosterMemberResponse.from_entity(member) for member in result.members],
+        )
+
+
+class TeamStandingResponse(BaseModel):
+    season: int
+    as_of_date: date
+    team_code: str
+    team_name: str
+    ranking: int
+    games: int
+    wins: int
+    losses: int
+    draws: int
+    winning_percentage: float
+    games_behind: float
+    recent_ten: str
+    streak: str
+    home_record: str
+    away_record: str
+    source_url: str
+
+    @classmethod
+    def from_entity(cls, standing: TeamStanding) -> "TeamStandingResponse":
+        return cls(
+            season=standing.season,
+            as_of_date=standing.as_of_date,
+            team_code=standing.team_code,
+            team_name=standing.team.team_name,
+            ranking=standing.ranking,
+            games=standing.games,
+            wins=standing.wins,
+            losses=standing.losses,
+            draws=standing.draws,
+            winning_percentage=float(standing.winning_percentage),
+            games_behind=float(standing.games_behind),
+            recent_ten=standing.recent_ten,
+            streak=standing.streak,
+            home_record=standing.home_record,
+            away_record=standing.away_record,
+            source_url=standing.source_url,
         )

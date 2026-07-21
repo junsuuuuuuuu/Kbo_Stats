@@ -5,6 +5,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.analytics.batting_metrics import BattingMetricValues
 from app.models.player import Player, PlayerSourceProfile
 from app.models.stats import BattingSeasonStat, PitchingSeasonStat
 
@@ -132,9 +133,29 @@ class BattingSeasonResponse(BaseModel):
     slugging_percentage: float | None
     on_base_percentage: float | None
     on_base_plus_slugging: float | None
+    defensive_efficiency: float | None
+    walk_percentage: float | None
+    strikeout_percentage: float | None
+    walk_to_strikeout_ratio: float | None
+    isolated_power: float | None
+    batting_average_on_balls_in_play: float | None
+    stolen_base_percentage: float | None
+    speed_score: float | None
+    weighted_stolen_base_runs: float | None
+    weighted_double_play_runs: float | None
+    weighted_on_base_average: float | None
+    weighted_runs_above_average: float | None
+    weighted_runs_created: float | None
+    weighted_runs_created_plus: float | None
 
     @classmethod
-    def from_entity(cls, stat: BattingSeasonStat, birth_date: date) -> "BattingSeasonResponse":
+    def from_entity(
+        cls,
+        stat: BattingSeasonStat,
+        birth_date: date,
+        defensive_efficiency: float | None = None,
+        metrics: BattingMetricValues | None = None,
+    ) -> "BattingSeasonResponse":
         """DB 중복 저장 없이 시즌 연도 기준 나이를 계산한다."""
 
         return cls(
@@ -167,6 +188,26 @@ class BattingSeasonResponse(BaseModel):
             slugging_percentage=stat.slugging_percentage,
             on_base_percentage=stat.on_base_percentage,
             on_base_plus_slugging=stat.on_base_plus_slugging,
+            defensive_efficiency=defensive_efficiency,
+            walk_percentage=metrics.walk_percentage if metrics else None,
+            strikeout_percentage=metrics.strikeout_percentage if metrics else None,
+            walk_to_strikeout_ratio=metrics.walk_to_strikeout_ratio if metrics else None,
+            isolated_power=metrics.isolated_power if metrics else None,
+            batting_average_on_balls_in_play=(
+                metrics.batting_average_on_balls_in_play if metrics else None
+            ),
+            stolen_base_percentage=metrics.stolen_base_percentage if metrics else None,
+            speed_score=metrics.speed_score if metrics else None,
+            weighted_stolen_base_runs=metrics.weighted_stolen_base_runs if metrics else None,
+            weighted_double_play_runs=metrics.weighted_double_play_runs if metrics else None,
+            weighted_on_base_average=metrics.weighted_on_base_average if metrics else None,
+            weighted_runs_above_average=(
+                metrics.weighted_runs_above_average if metrics else None
+            ),
+            weighted_runs_created=metrics.weighted_runs_created if metrics else None,
+            weighted_runs_created_plus=(
+                metrics.weighted_runs_created_plus if metrics else None
+            ),
         )
 
 
@@ -244,3 +285,77 @@ class PlayerSeasonsResponse(BaseModel):
     player_id: int
     batting: list[BattingSeasonResponse]
     pitching: list[PitchingSeasonResponse]
+
+
+class PitchingAppearanceResponse(BaseModel):
+    """한 경기의 투수 등판 기록."""
+
+    game_date: date
+    opponent: str
+    appearance_type: str
+    result: str | None
+    game_era: float
+    batters_faced: int
+    innings_pitched: str
+    hits_allowed: int
+    home_runs_allowed: int
+    walks_allowed: int
+    hit_batters: int
+    strikeouts: int
+    runs_allowed: int
+    earned_runs: int
+    season_era: float
+
+
+class PitchingAppearancesResponse(BaseModel):
+    player_id: int
+    season: int
+    source_url: str
+    items: list[PitchingAppearanceResponse]
+
+
+class BattingAppearanceResponse(BaseModel):
+    """한 경기의 타자 출장 기록."""
+
+    game_date: date
+    opponent: str
+    game_average: float | None
+    plate_appearances: int
+    at_bats: int
+    runs: int
+    hits: int
+    doubles: int
+    triples: int
+    home_runs: int
+    runs_batted_in: int
+    stolen_bases: int
+    caught_stealing: int
+    walks: int
+    hit_by_pitch: int
+    strikeouts: int
+    grounded_into_double_play: int
+    season_average: float
+
+
+class BattingAppearancesResponse(BaseModel):
+    player_id: int
+    season: int
+    source_url: str
+    items: list[BattingAppearanceResponse]
+
+
+class LeagueBenchmarkResponse(BaseModel):
+    metric: str
+    player_value: float
+    league_average: float
+    percentile: float = Field(ge=0, le=100)
+    sample_size: int = Field(ge=1)
+    higher_is_better: bool
+
+
+class PlayerBenchmarksResponse(BaseModel):
+    player_id: int
+    role: str
+    season: int
+    qualification: str
+    items: list[LeagueBenchmarkResponse]

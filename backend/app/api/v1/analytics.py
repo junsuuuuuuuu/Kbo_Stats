@@ -12,6 +12,7 @@ from app.schemas.analytics import (
     PeakResponse,
     PredictionResponse,
     RankingResponse,
+    RankingValueType,
     SimilarPlayersResponse,
 )
 from app.schemas.common import ErrorResponse
@@ -140,5 +141,6 @@ def value_rankings(
     season: Annotated[int, Query(ge=1982, le=2026)] = 2025,
     team: Annotated[str | None, Query(max_length=30)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 30,
+    value_type: RankingValueType = RankingValueType.OVERALL,
 ) -> dict:
-    return service.rankings(role.value, season, team, limit)
+    return service.rankings(role.value, season, team, limit, value_type.value)

@@ -1,6 +1,7 @@
 """구단 목록과 최신 1군 로스터 조회 유스케이스."""
 
 from app.core.exceptions import TeamRosterNotFoundError
+from app.models.standing import TeamStanding
 from app.repositories.team import TeamRepository, TeamRosterSnapshot, TeamRosterSummary
 
 
@@ -21,3 +22,8 @@ class TeamService:
         if snapshot is None:
             raise TeamRosterNotFoundError(normalized_code, season)
         return snapshot
+
+    def get_standing(self, team_code: str, season: int) -> TeamStanding | None:
+        """구단의 최신 전적을 반환한다. 시즌 개막 전에는 None일 수 있다."""
+
+        return self._repository.get_latest_standing(team_code.strip().upper(), season)

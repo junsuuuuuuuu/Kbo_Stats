@@ -46,3 +46,13 @@ class AnalyticsNotAvailableError(ApplicationError):
 
     def __init__(self, message: str, details: Any | None = None) -> None:
         super().__init__(message, details)
+
+
+class UpstreamDataError(ApplicationError):
+    """외부 공식 데이터 페이지를 일시적으로 읽지 못한 경우."""
+
+    code = "UPSTREAM_DATA_UNAVAILABLE"
+    status_code = 502
+
+    def __init__(self) -> None:
+        super().__init__("KBO 경기 기록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")

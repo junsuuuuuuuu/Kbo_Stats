@@ -18,3 +18,4 @@ class Team(TimestampMixin, Base):
     batting_stats = relationship("BattingSeasonStat", back_populates="team")
     pitching_stats = relationship("PitchingSeasonStat", back_populates="team")
     rosters = relationship("TeamRoster", back_populates="team")
+    standings = relationship("TeamStanding", back_populates="team")

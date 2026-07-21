@@ -10,13 +10,18 @@ import { useMemo, useState } from "react";
 import { GrowthChart, LineChart, PcaChart } from "@/components/charts";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
 import { CareerRecordDashboard } from "@/features/players/career-record-dashboard";
+import { BattingAppearanceTable } from "@/features/players/batting-appearance-table";
+import { CareerTimeline } from "@/features/players/career-timeline";
+import { DefenseDashboard } from "@/features/players/defense-dashboard";
+import { OffenseDashboard } from "@/features/players/offense-dashboard";
+import { PitchingAppearanceTable } from "@/features/players/pitching-appearance-table";
 import { api } from "@/lib/api";
 import { toChartNumber } from "@/lib/analytics";
 import { formatMetric } from "@/lib/metrics";
 import type { AnalyticsRole } from "@/types/api";
 
 const labels: Record<string, string> = {
-  batting_average: "AVG", on_base_percentage: "OBP", slugging_percentage: "SLG", on_base_plus_slugging: "OPS", home_runs: "HR", runs_batted_in: "RBI", stolen_bases: "SB", walks: "BB", strikeouts: "SO", earned_run_average: "ERA", innings_pitched_outs: "IP Outs", saves: "SV", holds: "HLD", peak_age: "Peak Age", peak_ops: "Peak OPS", peak_home_runs: "Peak HR", peak_era: "Peak ERA", peak_strikeouts: "Peak SO",
+  batting_average: "AVG", on_base_percentage: "OBP", slugging_percentage: "SLG", on_base_plus_slugging: "OPS", defensive_efficiency: "팀 DER", home_runs: "HR", runs_batted_in: "RBI", stolen_bases: "SB", walks: "BB", strikeouts: "SO", earned_run_average: "ERA", innings_pitched_outs: "IP Outs", saves: "SV", holds: "HLD", peak_age: "Peak Age", peak_ops: "Peak OPS", peak_home_runs: "Peak HR", peak_era: "Peak ERA", peak_strikeouts: "Peak SO",
 };
 
 const countMetrics = new Set(["home_runs", "strikeouts", "walks_allowed"]);
@@ -26,6 +31,7 @@ export default function PlayerDetailPage() {
   const searchParams = useSearchParams();
   const playerId = Number(id);
   const [selectedRole, setSelectedRole] = useState<AnalyticsRole | null>(null);
+  const [activeView, setActiveView] = useState<"overview" | "offense" | "defense">("overview");
   const player = useQuery({ queryKey: ["player", playerId], queryFn: () => api.player(playerId), enabled: Number.isFinite(playerId) });
   const seasons = useQuery({ queryKey: ["seasons", playerId], queryFn: () => api.seasons(playerId), enabled: Number.isFinite(playerId) });
 
@@ -46,6 +52,17 @@ export default function PlayerDetailPage() {
   const growth = useQuery({ queryKey: ["growth", role, playerId], queryFn: () => api.growth(role, playerId, growthMetrics), enabled: rows.length > 0 });
   const peak = useQuery({ queryKey: ["peak", role, playerId], queryFn: () => api.peak(role, playerId), enabled: rows.length >= 3 });
   const similar = useQuery({ queryKey: ["similar", role, playerId, analysisSeason], queryFn: () => api.similar(role, playerId, analysisSeason), enabled: Boolean(analysisSeason) });
+  const benchmarks = useQuery({ queryKey: ["benchmarks", role, playerId, latestSeason], queryFn: () => api.benchmarks(playerId, role, latestSeason!), enabled: Boolean(latestSeason) });
+  const appearances = useQuery({
+    queryKey: ["pitching-appearances", playerId, 2026],
+    queryFn: () => api.pitchingAppearances(playerId, 2026),
+    enabled: role === "pitching" && seasons.data?.pitching.some((row) => row.season === 2026),
+  });
+  const battingAppearances = useQuery({
+    queryKey: ["batting-appearances", playerId, 2026],
+    queryFn: () => api.battingAppearances(playerId, 2026),
+    enabled: role === "batting" && seasons.data?.batting.some((row) => row.season === 2026),
+  });
 
   if (player.isLoading || seasons.isLoading) return <div className="page"><LoadingPanel /></div>;
   if (player.isError || seasons.isError) return <div className="page"><ErrorPanel error={player.error ?? seasons.error} /></div>;
@@ -64,7 +81,7 @@ export default function PlayerDetailPage() {
   const latestMetrics = role === "batting" ? ["batting_average", "on_base_plus_slugging", "home_runs", "runs_batted_in"] : ["earned_run_average", "innings_pitched_outs", "strikeouts", "walks_allowed"];
 
   return (
-    <div className="page">
+    <div className="page player-detail-page">
       <header className="player-heading">
         <div>
           <span className="eyebrow">PLAYER INTELLIGENCE · {latestSeason ?? "—"}{latest?.is_partial ? " 진행 중" : ""}</span>
@@ -72,18 +89,69 @@ export default function PlayerDetailPage() {
           <p className="muted">{player.data?.birth_date} · {latest?.team ?? "팀 정보 없음"}</p>
         </div>
         <div className="tabs">
-          {seasons.data?.batting.length ? <button className={role === "batting" ? "active" : ""} onClick={() => setSelectedRole("batting")}>타자</button> : null}
-          {seasons.data?.pitching.length ? <button className={role === "pitching" ? "active" : ""} onClick={() => setSelectedRole("pitching")}>투수</button> : null}
+          {seasons.data?.batting.length ? <button className={role === "batting" ? "active" : ""} onClick={() => { setSelectedRole("batting"); }}>타자</button> : null}
+          {seasons.data?.pitching.length ? <button className={role === "pitching" ? "active" : ""} onClick={() => { setSelectedRole("pitching"); setActiveView("overview"); }}>투수</button> : null}
         </div>
       </header>
 
-      <section className="metric-grid">
+      <nav className="player-view-tabs" aria-label="선수 상세 항목">
+        <button className={activeView === "overview" ? "active" : ""} onClick={() => setActiveView("overview")} type="button">종합 기록</button>
+        {role === "batting" ? <button className={activeView === "offense" ? "active" : ""} onClick={() => setActiveView("offense")} type="button">공격 지표</button> : null}
+        {role === "batting" ? <button className={activeView === "defense" ? "active" : ""} onClick={() => setActiveView("defense")} type="button">수비 지표</button> : null}
+      </nav>
+
+      {activeView === "offense" && role === "batting" ? (
+        <OffenseDashboard rows={seasons.data?.batting ?? []} />
+      ) : activeView === "defense" && role === "batting" ? (
+        <DefenseDashboard rows={seasons.data?.batting ?? []} />
+      ) : (
+
+      <div className="player-detail-layout">
+      <main className="player-detail-main">
+      <section className={`metric-grid player-metric-grid ${role}`}>
         {latestMetrics.map((metric) => {
           const value = latest?.[metric];
           const snapshotHint = latest?.is_partial && latest.as_of_date ? ` · ${latest.as_of_date} 기준` : "";
           return <MetricCard key={metric} label={labels[metric]} value={formatMetric(metric, value == null ? null : Number(value))} hint={`${latestSeason ?? ""} 시즌${snapshotHint}`} />;
         })}
       </section>
+
+      {role === "pitching" && latestSeason === 2026 ? (
+        <PitchingAppearanceTable
+          data={appearances.data}
+          error={appearances.error}
+          isError={appearances.isError}
+          isLoading={appearances.isLoading}
+        />
+      ) : null}
+      {role === "batting" && latestSeason === 2026 ? (
+        <BattingAppearanceTable
+          data={battingAppearances.data}
+          error={battingAppearances.error}
+          isError={battingAppearances.isError}
+          isLoading={battingAppearances.isLoading}
+        />
+      ) : null}
+
+      <section className="section benchmark-section">
+        <div className="panel-header benchmark-heading">
+          <div><span className="eyebrow">LEAGUE CONTEXT · {latestSeason}</span><h2>리그에서 어느 정도일까요?</h2></div>
+          <p className="muted">{benchmarks.data?.qualification ?? "동일 시즌"} 선수 기준</p>
+        </div>
+        {benchmarks.isLoading ? <LoadingPanel label="리그 분포를 계산하고 있습니다" /> : benchmarks.isError ? <ErrorPanel error={benchmarks.error} /> : (
+          <div className="benchmark-grid">
+            {benchmarks.data?.items.map((item) => (
+              <article className="benchmark-card" key={item.metric}>
+                <div><span>{labels[item.metric] ?? item.metric}</span><strong>상위 {Math.max(1, Math.round(100 - item.percentile))}%</strong></div>
+                <div className="percentile-track"><i style={{ width: `${item.percentile}%` }} /></div>
+                <p>선수 <b>{formatMetric(item.metric, item.player_value)}</b><span>리그 평균 {formatMetric(item.metric, item.league_average)}</span></p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <CareerTimeline role={role} rows={rows} />
 
       <section className="section two-column">
         <div className="panel">
@@ -107,8 +175,7 @@ export default function PlayerDetailPage() {
         {growth.isLoading ? <LoadingPanel /> : growth.isError ? <ErrorPanel error={growth.error} /> : growth.data && <GrowthChart points={growth.data.curves} />}
       </section>
 
-      <section className="section two-column">
-        <div className="panel">
+      <section className="section panel">
           <div className="panel-header"><h2>전성기 예측</h2><Target size={20} /></div>
           {peak.isLoading ? <LoadingPanel /> : peak.isError ? <ErrorPanel error={peak.error} /> : (
             <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
@@ -121,21 +188,30 @@ export default function PlayerDetailPage() {
               })}
             </div>
           )}
-        </div>
-        <div className="panel">
-          <div className="panel-header"><h2>유사 선수 TOP10</h2><Sparkles size={20} /></div>
-          {similar.isLoading ? <LoadingPanel /> : similar.isError ? <ErrorPanel error={similar.error} /> : (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead><tr><th>#</th><th>선수</th><th>유사도</th></tr></thead>
-                <tbody>{similar.data?.recommendations.map((item) => <tr key={item.player_id}><td className="rank">{item.rank}</td><td><Link href={`/players/${item.player_id}?role=${role}`}>{item.player_name}</Link><ul className="reason-list">{item.reasons.slice(0, 1).map((reason) => <li key={reason}>{reason}</li>)}</ul></td><td className="score">{(item.similarity_score * 100).toFixed(1)}</td></tr>)}</tbody>
-              </table>
-            </div>
-          )}
-        </div>
       </section>
 
       {similar.data && <section className="section panel"><div className="panel-header"><h2>플레이 스타일 PCA 맵</h2><span className="muted">기준 선수와 추천 TOP10</span></div><PcaChart data={similar.data} /></section>}
+      </main>
+
+      <aside className="panel similar-player-rail" aria-label="유사 선수 TOP10">
+        <div className="panel-header"><div><span className="eyebrow">SIMILAR PLAYERS</span><h2>유사 선수 TOP10</h2></div><Sparkles size={19} /></div>
+        {similar.isLoading ? <LoadingPanel /> : similar.isError ? <ErrorPanel error={similar.error} /> : (
+          <ol className="similar-player-list">
+            {similar.data?.recommendations.map((item) => (
+              <li key={item.player_id}>
+                <span className="rank">{item.rank}</span>
+                <Link href={`/players/${item.player_id}?role=${role}`}>
+                  <strong>{item.player_name}</strong>
+                  <small>{item.team} · {item.reasons[0]}</small>
+                </Link>
+                <b>{(item.similarity_score * 100).toFixed(0)}</b>
+              </li>
+            ))}
+          </ol>
+        )}
+      </aside>
+      </div>
+      )}
     </div>
   );
 }
