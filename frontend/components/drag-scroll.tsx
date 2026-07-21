@@ -10,6 +10,7 @@ export function DragScroll({ children, className = "" }: { children: ReactNode; 
 
   const start = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    if ((event.target as HTMLElement).closest("a, button, input, select, textarea")) return;
     const element = elementRef.current;
     if (!element) return;
     origin.current = { x: event.clientX, y: event.clientY, left: element.scrollLeft, top: element.scrollTop };

@@ -48,6 +48,7 @@ class FakePlayerRepository:
         self.pitching_stats: list[PitchingSeasonStat] = []
         self.metric_values: list[float] = []
         self.defensive_efficiencies: dict[tuple[int, int], float] = {}
+        self.team_rankings: dict[tuple[int, int], int] = {}
 
     def search(self, criteria: PlayerSearchCriteria) -> tuple[list[Player], int]:
         self.last_criteria = criteria
@@ -74,6 +75,11 @@ class FakePlayerRepository:
         self, _team_seasons: set[tuple[int, int]]
     ) -> dict[tuple[int, int], float]:
         return self.defensive_efficiencies
+
+    def team_standing_rankings(
+        self, _team_seasons: set[tuple[int, int]]
+    ) -> dict[tuple[int, int], int]:
+        return self.team_rankings
 
     def league_metric_values(self, _role: object, _season: int, _metric: str) -> list[float]:
         return self.metric_values

@@ -134,6 +134,7 @@ class BattingSeasonResponse(BaseModel):
     on_base_percentage: float | None
     on_base_plus_slugging: float | None
     defensive_efficiency: float | None
+    team_rank: int | None
     walk_percentage: float | None
     strikeout_percentage: float | None
     walk_to_strikeout_ratio: float | None
@@ -155,6 +156,7 @@ class BattingSeasonResponse(BaseModel):
         birth_date: date,
         defensive_efficiency: float | None = None,
         metrics: BattingMetricValues | None = None,
+        team_rank: int | None = None,
     ) -> "BattingSeasonResponse":
         """DB 중복 저장 없이 시즌 연도 기준 나이를 계산한다."""
 
@@ -189,6 +191,7 @@ class BattingSeasonResponse(BaseModel):
             on_base_percentage=stat.on_base_percentage,
             on_base_plus_slugging=stat.on_base_plus_slugging,
             defensive_efficiency=defensive_efficiency,
+            team_rank=team_rank,
             walk_percentage=metrics.walk_percentage if metrics else None,
             strikeout_percentage=metrics.strikeout_percentage if metrics else None,
             walk_to_strikeout_ratio=metrics.walk_to_strikeout_ratio if metrics else None,

@@ -105,6 +105,7 @@ def get_player_seasons(
                 birth_date,
                 result.defensive_efficiencies.get((stat.season, stat.team_id)),
                 result.batting_metrics.get(id(stat)),
+                result.team_rankings.get((stat.season, stat.team_id)),
             )
             for stat in result.batting
         ],

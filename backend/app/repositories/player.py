@@ -7,6 +7,7 @@ from sqlalchemy import Select, func, or_, select, tuple_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.player import Player
+from app.models.standing import TeamStanding
 from app.models.stats import BattingSeasonStat, PitchingSeasonStat
 from app.models.team import Team
 from app.schemas.player import PlayerRole
@@ -68,6 +69,10 @@ class PlayerRepository(Protocol):
     def team_defensive_efficiencies(
         self, team_seasons: set[tuple[int, int]]
     ) -> dict[tuple[int, int], float]: ...
+
+    def team_standing_rankings(
+        self, team_seasons: set[tuple[int, int]]
+    ) -> dict[tuple[int, int], int]: ...
 
     def league_metric_values(self, role: PlayerRole, season: int, metric: str) -> list[float]: ...
 
@@ -228,6 +233,36 @@ class SqlAlchemyPlayerRepository:
             if efficiency is not None:
                 results[(season, team_id)] = efficiency
         return results
+
+    def team_standing_rankings(
+        self, team_seasons: set[tuple[int, int]]
+    ) -> dict[tuple[int, int], int]:
+        """각 팀·시즌에서 저장된 가장 최신 순위를 반환한다."""
+
+        if not team_seasons:
+            return {}
+        latest_dates = (
+            select(
+                TeamStanding.season,
+                TeamStanding.team_id,
+                func.max(TeamStanding.as_of_date).label("as_of_date"),
+            )
+            .where(tuple_(TeamStanding.season, TeamStanding.team_id).in_(team_seasons))
+            .group_by(TeamStanding.season, TeamStanding.team_id)
+            .subquery()
+        )
+        statement = select(
+            TeamStanding.season, TeamStanding.team_id, TeamStanding.ranking
+        ).join(
+            latest_dates,
+            (latest_dates.c.season == TeamStanding.season)
+            & (latest_dates.c.team_id == TeamStanding.team_id)
+            & (latest_dates.c.as_of_date == TeamStanding.as_of_date),
+        )
+        return {
+            (int(season), int(team_id)): int(ranking)
+            for season, team_id, ranking in self._session.execute(statement)
+        }
 
     def league_metric_values(self, role: PlayerRole, season: int, metric: str) -> list[float]:
         """동일 시즌의 최소 표본 충족 선수군에서 지표 값을 조회한다."""

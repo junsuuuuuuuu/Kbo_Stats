@@ -52,6 +52,7 @@ export interface BattingSeason {
   slugging_percentage: number | null;
   on_base_plus_slugging: number | null;
   defensive_efficiency: number | null;
+  team_rank: number | null;
   walk_percentage: number | null;
   strikeout_percentage: number | null;
   walk_to_strikeout_ratio: number | null;
@@ -219,6 +220,122 @@ export interface TeamStanding {
   streak: string;
   home_record: string;
   away_record: string;
+  source_url: string;
+}
+
+export interface TeamGameResult {
+  game_date: string;
+  opponent: string;
+  venue: "home" | "away";
+  result: "W" | "L" | "D";
+  team_score: number;
+  opponent_score: number;
+  stadium: string;
+  game_url: string | null;
+  game_id: string | null;
+}
+
+export interface GameHitter {
+  batting_order: string;
+  position: string;
+  player_name: string;
+  at_bats: number;
+  hits: number;
+  runs_batted_in: number;
+  runs: number;
+  batting_average: number;
+  plate_appearances: string[];
+}
+
+export interface GamePitcher {
+  player_name: string;
+  appearance: string;
+  result: string | null;
+  wins: number;
+  losses: number;
+  saves: number;
+  innings_pitched: string;
+  batters_faced: number;
+  pitches: number;
+  at_bats: number;
+  hits_allowed: number;
+  home_runs_allowed: number;
+  walks_and_hit_batters: number;
+  strikeouts: number;
+  runs_allowed: number;
+  earned_runs: number;
+  earned_run_average: number;
+}
+
+export interface GameTeamBox {
+  team_code: string;
+  team_name: string;
+  result: "W" | "L" | "D";
+  runs: number;
+  hits: number;
+  errors: number;
+  walks: number;
+  innings: string[];
+  hitters: GameHitter[];
+  pitchers: GamePitcher[];
+}
+
+export interface TeamGameDetail {
+  game_id: string;
+  game_date: string;
+  stadium: string;
+  crowd: string;
+  start_time: string;
+  end_time: string;
+  duration: string;
+  away: GameTeamBox;
+  home: GameTeamBox;
+  key_events: [string, string][];
+  source_url: string;
+}
+
+export interface TeamGameResults {
+  season: number;
+  team_code: string;
+  source_url: string;
+  items: TeamGameResult[];
+}
+
+export interface GameDayStar {
+  player_name: string;
+  summary: string;
+}
+
+export interface GameDayTeam {
+  team_code: string;
+  team_name: string;
+  result: "W" | "L" | "D" | null;
+  runs: number | null;
+  hits: number | null;
+  errors: number | null;
+}
+
+export interface LatestGameSummary {
+  game_id: string;
+  stadium: string;
+  start_time: string;
+  status: "completed" | "scheduled" | "cancelled";
+  away: GameDayTeam;
+  home: GameDayTeam;
+  away_hitter: GameDayStar | null;
+  away_pitcher: GameDayStar | null;
+  home_hitter: GameDayStar | null;
+  home_pitcher: GameDayStar | null;
+  winning_pitcher: string | null;
+  losing_pitcher: string | null;
+  cancellation_reason: string | null;
+  away_starting_pitcher: string | null;
+  home_starting_pitcher: string | null;
+}
+
+export interface LatestGameDay {
+  game_date: string;
+  games: LatestGameSummary[];
   source_url: string;
 }
 

@@ -13,7 +13,10 @@ import type {
   RankingResponse,
   RankingValueType,
   SimilarResponse,
+  LatestGameDay,
   TeamList,
+  TeamGameResults,
+  TeamGameDetail,
   TeamRoster,
   TeamStanding,
 } from "@/types/api";
@@ -60,6 +63,14 @@ export const api = {
     request<TeamRoster>(`/teams/${teamCode}/roster`, { season }),
   teamStanding: (teamCode: string, season = 2026) =>
     request<TeamStanding | null>(`/teams/${teamCode}/standing`, { season }),
+  teamGames: (teamCode: string, season = 2026) =>
+    request<TeamGameResults>(`/teams/${teamCode}/games`, { season }),
+  teamGame: (teamCode: string, gameId: string, season = 2026) =>
+    request<TeamGameDetail>(`/teams/${teamCode}/games/${gameId}`, { season }),
+  latestGames: (season = 2026) =>
+    request<LatestGameDay>("/teams/games/latest", { season }),
+  gamesByDay: (gameDate: string, season = 2026) =>
+    request<LatestGameDay>("/teams/games/day", { game_date: gameDate, season }),
   prediction: (role: AnalyticsRole, id: number) =>
     request<PredictionResponse>(`/analytics/predictions/${role}/${id}`),
   growth: (role: AnalyticsRole, id: number, metrics: string) =>

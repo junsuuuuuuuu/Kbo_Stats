@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from statistics import fmean
 
 from app.analytics.batting_metrics import BattingMetricValues, calculate_batting_metrics
+from app.analytics.team_rankings import final_team_rank
 from app.core.exceptions import PlayerNotFoundError
 from app.models.player import Player
 from app.models.stats import BattingSeasonStat, PitchingSeasonStat
@@ -30,6 +31,7 @@ class PlayerSeasons:
     pitching: list[PitchingSeasonStat]
     defensive_efficiencies: dict[tuple[int, int], float]
     batting_metrics: dict[int, BattingMetricValues]
+    team_rankings: dict[tuple[int, int], int]
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,7 +133,19 @@ class PlayerService:
             for row in batting
             if hasattr(row, "plate_appearances")
         }
-        return PlayerSeasons(player, batting, pitching, defensive_efficiencies, batting_metrics)
+        team_seasons = {
+            (row.season, row.team_id) for row in [*batting, *pitching]
+        }
+        team_rankings = self._repository.team_standing_rankings(team_seasons)
+        for row in [*batting, *pitching]:
+            key = (row.season, row.team_id)
+            if key not in team_rankings and hasattr(row, "team"):
+                rank = final_team_rank(row.season, row.team.team_name)
+                if rank is not None:
+                    team_rankings[key] = rank
+        return PlayerSeasons(
+            player, batting, pitching, defensive_efficiencies, batting_metrics, team_rankings
+        )
 
     def get_league_benchmarks(
         self, player_id: int, role: PlayerRole, season: int

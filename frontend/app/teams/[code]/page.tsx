@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { TeamLogo } from "@/components/team-logo";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
 import { api } from "@/lib/api";
+import { TeamGameResultTable } from "@/features/teams/team-game-results";
 import type { RosterMember } from "@/types/api";
 
 const positions = [
@@ -36,6 +37,11 @@ export default function TeamRosterPage() {
   const standing = useQuery({
     queryKey: ["team-standing", teamCode, 2026],
     queryFn: () => api.teamStanding(teamCode, 2026),
+    enabled: teamCode.length === 2,
+  });
+  const games = useQuery({
+    queryKey: ["team-games", teamCode, 2026],
+    queryFn: () => api.teamGames(teamCode, 2026),
     enabled: teamCode.length === 2,
   });
   const teamName = roster.data?.team.team_name;
@@ -91,6 +97,8 @@ export default function TeamRosterPage() {
       </section>
 
       {record ? <div className="team-split-record"><span>홈 <b>{record.home_record}</b></span><span>원정 <b>{record.away_record}</b></span><a href={record.source_url} target="_blank" rel="noreferrer">KBO 공식 전적 <ArrowUpRight size={14} /></a></div> : null}
+
+      <TeamGameResultTable teamCode={teamCode} data={games.data} error={games.error} isError={games.isError} isLoading={games.isLoading} />
 
       <section className="section two-column team-dashboard-grid">
         {([

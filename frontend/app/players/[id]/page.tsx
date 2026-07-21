@@ -116,23 +116,6 @@ export default function PlayerDetailPage() {
         })}
       </section>
 
-      {role === "pitching" && latestSeason === 2026 ? (
-        <PitchingAppearanceTable
-          data={appearances.data}
-          error={appearances.error}
-          isError={appearances.isError}
-          isLoading={appearances.isLoading}
-        />
-      ) : null}
-      {role === "batting" && latestSeason === 2026 ? (
-        <BattingAppearanceTable
-          data={battingAppearances.data}
-          error={battingAppearances.error}
-          isError={battingAppearances.isError}
-          isLoading={battingAppearances.isLoading}
-        />
-      ) : null}
-
       <section className="section benchmark-section">
         <div className="panel-header benchmark-heading">
           <div><span className="eyebrow">LEAGUE CONTEXT · {latestSeason}</span><h2>리그에서 어느 정도일까요?</h2></div>
@@ -150,6 +133,23 @@ export default function PlayerDetailPage() {
           </div>
         )}
       </section>
+
+      {role === "pitching" && latestSeason === 2026 ? (
+        <PitchingAppearanceTable
+          data={appearances.data}
+          error={appearances.error}
+          isError={appearances.isError}
+          isLoading={appearances.isLoading}
+        />
+      ) : null}
+      {role === "batting" && latestSeason === 2026 ? (
+        <BattingAppearanceTable
+          data={battingAppearances.data}
+          error={battingAppearances.error}
+          isError={battingAppearances.isError}
+          isLoading={battingAppearances.isLoading}
+        />
+      ) : null}
 
       <CareerTimeline role={role} rows={rows} />
 

@@ -30,14 +30,17 @@ export function DefenseDashboard({ rows }: { rows: BattingSeason[] }) {
         <div className="panel-header"><h2>시즌별 수비 기록</h2><span className="muted">팀 DER과 개인 실책을 같은 행에서 비교</span></div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>시즌</th><th>팀</th><th>포지션</th><th>출장</th><th>개인 E</th><th>팀 DER</th><th>기준일</th></tr></thead>
+            <thead><tr><th>시즌</th><th>팀</th><th>포지션</th><th>출장</th><th>개인 E</th><th>팀 DER</th><th>기준일 · 구단 순위</th></tr></thead>
             <tbody>
               {[...ordered].reverse().map((row) => (
                 <tr key={`${row.season}-${row.team}`}>
                   <td className="rank">{row.season}</td><td>{row.team}</td><td>{row.position}</td>
                   <td>{row.games}</td><td><b>{row.errors}</b></td>
                   <td>{row.defensive_efficiency?.toFixed(3) ?? "—"}</td>
-                  <td className="muted">{row.is_partial ? row.as_of_date ?? "진행 중" : "시즌 최종"}</td>
+                  <td className="muted">
+                    {row.is_partial ? row.as_of_date ?? "진행 중" : "시즌 최종"}
+                    {row.team_rank != null ? ` · ${row.is_partial ? "현재 " : ""}${row.team_rank}위` : ""}
+                  </td>
                 </tr>
               ))}
             </tbody>

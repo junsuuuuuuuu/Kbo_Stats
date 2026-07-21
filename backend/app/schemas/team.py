@@ -122,3 +122,119 @@ class TeamStandingResponse(BaseModel):
             away_record=standing.away_record,
             source_url=standing.source_url,
         )
+
+
+class TeamGameResultResponse(BaseModel):
+    game_date: date
+    opponent: str
+    venue: str
+    result: str
+    team_score: int
+    opponent_score: int
+    stadium: str
+    game_url: str | None
+    game_id: str | None
+
+
+class TeamGameResultsResponse(BaseModel):
+    season: int
+    team_code: str
+    source_url: str
+    items: list[TeamGameResultResponse]
+
+
+class GameHitterResponse(BaseModel):
+    batting_order: str
+    position: str
+    player_name: str
+    at_bats: int
+    hits: int
+    runs_batted_in: int
+    runs: int
+    batting_average: float
+    plate_appearances: list[str]
+
+
+class GamePitcherResponse(BaseModel):
+    player_name: str
+    appearance: str
+    result: str | None
+    wins: int
+    losses: int
+    saves: int
+    innings_pitched: str
+    batters_faced: int
+    pitches: int
+    at_bats: int
+    hits_allowed: int
+    home_runs_allowed: int
+    walks_and_hit_batters: int
+    strikeouts: int
+    runs_allowed: int
+    earned_runs: int
+    earned_run_average: float
+
+
+class GameTeamBoxResponse(BaseModel):
+    team_code: str
+    team_name: str
+    result: str
+    runs: int
+    hits: int
+    errors: int
+    walks: int
+    innings: list[str]
+    hitters: list[GameHitterResponse]
+    pitchers: list[GamePitcherResponse]
+
+
+class TeamGameDetailResponse(BaseModel):
+    game_id: str
+    game_date: date
+    stadium: str
+    crowd: str
+    start_time: str
+    end_time: str
+    duration: str
+    away: GameTeamBoxResponse
+    home: GameTeamBoxResponse
+    key_events: list[tuple[str, str]]
+    source_url: str
+
+
+class GameDayStarResponse(BaseModel):
+    player_name: str
+    summary: str
+
+
+class GameDayTeamResponse(BaseModel):
+    team_code: str
+    team_name: str
+    result: str | None
+    runs: int | None
+    hits: int | None
+    errors: int | None
+
+
+class LatestGameSummaryResponse(BaseModel):
+    game_id: str
+    stadium: str
+    start_time: str
+    status: str
+    away: GameDayTeamResponse
+    home: GameDayTeamResponse
+    away_hitter: GameDayStarResponse | None
+    away_pitcher: GameDayStarResponse | None
+    home_hitter: GameDayStarResponse | None
+    home_pitcher: GameDayStarResponse | None
+    winning_pitcher: str | None
+    losing_pitcher: str | None
+    cancellation_reason: str | None
+    away_starting_pitcher: str | None
+    home_starting_pitcher: str | None
+
+
+class LatestGameDayResponse(BaseModel):
+    game_date: date
+    games: list[LatestGameSummaryResponse]
+    source_url: str
