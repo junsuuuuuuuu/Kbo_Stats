@@ -6,15 +6,19 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { ErrorPanel, LoadingPanel, SectionTitle } from "@/components/ui";
+import { FavoriteButton } from "@/components/favorite-button";
 import { api } from "@/lib/api";
+import { useFavoritePlayers } from "@/lib/favorites";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 export default function PlayersPage() {
   const [input, setInput] = useState("");
-  const [queryText, setQueryText] = useState("");
   const [page, setPage] = useState(1);
+  const { favorites } = useFavoritePlayers();
+  const queryText = useDebouncedValue(input.trim(), 300);
   const query = useQuery({
     queryKey: ["players", queryText, page],
-    queryFn: () => api.searchPlayers(queryText, undefined, page),
+    queryFn: ({ signal }) => api.searchPlayers(queryText, undefined, page, signal),
     enabled: queryText.length > 0,
   });
   const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / 30));
@@ -26,18 +30,45 @@ export default function PlayersPage() {
         title="선수를 검색하세요"
         description="동명이인은 생년월일과 역할로 구분됩니다."
       />
+      <section className="panel favorites-panel" aria-labelledby="favorite-players-title">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">MY PLAYERS</span>
+            <h2 id="favorite-players-title">즐겨찾는 선수</h2>
+          </div>
+          <span className="favorite-count">{favorites.length}명</span>
+        </div>
+        {favorites.length ? (
+          <div className="favorite-player-grid">
+            {favorites.map((player) => {
+              const role = player.roles.includes("BATTING") ? "batting" : "pitching";
+              return (
+                <article className="favorite-player-card" key={player.player_id}>
+                  <Link href={`/players/${player.player_id}?role=${role}`}>
+                    <strong>{player.player_name}</strong>
+                    <span>{player.birth_date || "생년월일 정보 없음"}</span>
+                    <small>{player.roles.map((item) => item === "BATTING" ? "타자" : "투수").join(" · ")}</small>
+                  </Link>
+                  <FavoriteButton compact player={player} />
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="favorites-empty">선수 상세 페이지에서 별표를 눌러 자주 보는 선수를 모아보세요.</p>
+        )}
+      </section>
       <form
         className="search-box"
-        style={{ marginTop: 28 }}
+        style={{ marginTop: 20 }}
         onSubmit={(event) => {
           event.preventDefault();
           setPage(1);
-          setQueryText(input.trim());
         }}
       >
         <input
           value={input}
-          onChange={(event) => setInput(event.target.value)}
+          onChange={(event) => { setInput(event.target.value); setPage(1); }}
           placeholder="예: 김도영, 류현진"
           aria-label="선수명"
         />

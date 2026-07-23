@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 
 import { GrowthChart, LineChart, PcaChart } from "@/components/charts";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
+import { FavoriteButton } from "@/components/favorite-button";
 import { CareerRecordDashboard } from "@/features/players/career-record-dashboard";
 import { BattingAppearanceTable } from "@/features/players/batting-appearance-table";
 import { CareerTimeline } from "@/features/players/career-timeline";
@@ -17,8 +18,9 @@ import { OffenseDashboard } from "@/features/players/offense-dashboard";
 import { PitchingAppearanceTable } from "@/features/players/pitching-appearance-table";
 import { api } from "@/lib/api";
 import { toChartNumber } from "@/lib/analytics";
+import { CURRENT_SEASON, LAST_COMPLETE_SEASON } from "@/lib/constants";
 import { formatMetric } from "@/lib/metrics";
-import type { AnalyticsRole } from "@/types/api";
+import type { AnalyticsRole, PlayerRole } from "@/types/api";
 
 const labels: Record<string, string> = {
   batting_average: "AVG", on_base_percentage: "OBP", slugging_percentage: "SLG", on_base_plus_slugging: "OPS", defensive_efficiency: "팀 DER", home_runs: "HR", runs_batted_in: "RBI", stolen_bases: "SB", walks: "BB", strikeouts: "SO", earned_run_average: "ERA", innings_pitched_outs: "IP Outs", saves: "SV", holds: "HLD", peak_age: "Peak Age", peak_ops: "Peak OPS", peak_home_runs: "Peak HR", peak_era: "Peak ERA", peak_strikeouts: "Peak SO",
@@ -32,8 +34,9 @@ export default function PlayerDetailPage() {
   const playerId = Number(id);
   const [selectedRole, setSelectedRole] = useState<AnalyticsRole | null>(null);
   const [activeView, setActiveView] = useState<"overview" | "offense" | "defense">("overview");
-  const player = useQuery({ queryKey: ["player", playerId], queryFn: () => api.player(playerId), enabled: Number.isFinite(playerId) });
-  const seasons = useQuery({ queryKey: ["seasons", playerId], queryFn: () => api.seasons(playerId), enabled: Number.isFinite(playerId) });
+  const overview = useQuery({ queryKey: ["player-overview", playerId], queryFn: () => api.playerOverview(playerId), enabled: Number.isFinite(playerId) });
+  const player = { data: overview.data?.player, isLoading: overview.isLoading, isError: overview.isError, error: overview.error };
+  const seasons = { data: overview.data?.seasons, isLoading: overview.isLoading, isError: overview.isError, error: overview.error };
 
   const requestedRole = searchParams.get("role");
   const availableRequestedRole: AnalyticsRole | null = requestedRole === "pitching" && seasons.data?.pitching.length
@@ -48,20 +51,20 @@ export default function PlayerDetailPage() {
   const latestCompleted = rows.findLast((row) => !row.is_partial);
   const analysisSeason = latestCompleted?.season;
   const growthMetrics = role === "batting" ? "batting_average,on_base_plus_slugging,home_runs" : "earned_run_average,strikeouts,walks_allowed";
-  const prediction = useQuery({ queryKey: ["prediction", role, playerId], queryFn: () => api.prediction(role, playerId), enabled: analysisSeason === 2025 });
+  const prediction = useQuery({ queryKey: ["prediction", role, playerId], queryFn: () => api.prediction(role, playerId), enabled: analysisSeason === LAST_COMPLETE_SEASON });
   const growth = useQuery({ queryKey: ["growth", role, playerId], queryFn: () => api.growth(role, playerId, growthMetrics), enabled: rows.length > 0 });
   const peak = useQuery({ queryKey: ["peak", role, playerId], queryFn: () => api.peak(role, playerId), enabled: rows.length >= 3 });
   const similar = useQuery({ queryKey: ["similar", role, playerId, analysisSeason], queryFn: () => api.similar(role, playerId, analysisSeason), enabled: Boolean(analysisSeason) });
   const benchmarks = useQuery({ queryKey: ["benchmarks", role, playerId, latestSeason], queryFn: () => api.benchmarks(playerId, role, latestSeason!), enabled: Boolean(latestSeason) });
   const appearances = useQuery({
-    queryKey: ["pitching-appearances", playerId, 2026],
-    queryFn: () => api.pitchingAppearances(playerId, 2026),
-    enabled: role === "pitching" && seasons.data?.pitching.some((row) => row.season === 2026),
+    queryKey: ["pitching-appearances", playerId, CURRENT_SEASON],
+    queryFn: () => api.pitchingAppearances(playerId, CURRENT_SEASON),
+    enabled: role === "pitching" && seasons.data?.pitching.some((row) => row.season === CURRENT_SEASON),
   });
   const battingAppearances = useQuery({
-    queryKey: ["batting-appearances", playerId, 2026],
-    queryFn: () => api.battingAppearances(playerId, 2026),
-    enabled: role === "batting" && seasons.data?.batting.some((row) => row.season === 2026),
+    queryKey: ["batting-appearances", playerId, CURRENT_SEASON],
+    queryFn: () => api.battingAppearances(playerId, CURRENT_SEASON),
+    enabled: role === "batting" && seasons.data?.batting.some((row) => row.season === CURRENT_SEASON),
   });
 
   if (player.isLoading || seasons.isLoading) return <div className="page"><LoadingPanel /></div>;
@@ -79,6 +82,12 @@ export default function PlayerDetailPage() {
     line: { width: 3 },
   }));
   const latestMetrics = role === "batting" ? ["batting_average", "on_base_plus_slugging", "home_runs", "runs_batted_in"] : ["earned_run_average", "innings_pitched_outs", "strikeouts", "walks_allowed"];
+  const favoritePlayer = player.data ? {
+    player_id: player.data.player_id,
+    player_name: player.data.player_name,
+    birth_date: player.data.birth_date,
+    roles: [...new Set(player.data.profiles.map((profile) => profile.role))] as PlayerRole[],
+  } : null;
 
   return (
     <div className="page player-detail-page">
@@ -88,9 +97,12 @@ export default function PlayerDetailPage() {
           <h1>{player.data?.player_name}</h1>
           <p className="muted">{player.data?.birth_date} · {latest?.team ?? "팀 정보 없음"}</p>
         </div>
-        <div className="tabs">
-          {seasons.data?.batting.length ? <button className={role === "batting" ? "active" : ""} onClick={() => { setSelectedRole("batting"); }}>타자</button> : null}
-          {seasons.data?.pitching.length ? <button className={role === "pitching" ? "active" : ""} onClick={() => { setSelectedRole("pitching"); setActiveView("overview"); }}>투수</button> : null}
+        <div className="player-heading-actions">
+          {favoritePlayer && <FavoriteButton player={favoritePlayer} />}
+          <div className="tabs">
+            {seasons.data?.batting.length ? <button className={role === "batting" ? "active" : ""} onClick={() => { setSelectedRole("batting"); }}>타자</button> : null}
+            {seasons.data?.pitching.length ? <button className={role === "pitching" ? "active" : ""} onClick={() => { setSelectedRole("pitching"); setActiveView("overview"); }}>투수</button> : null}
+          </div>
         </div>
       </header>
 
@@ -134,7 +146,7 @@ export default function PlayerDetailPage() {
         )}
       </section>
 
-      {role === "pitching" && latestSeason === 2026 ? (
+      {role === "pitching" && latestSeason === CURRENT_SEASON ? (
         <PitchingAppearanceTable
           data={appearances.data}
           error={appearances.error}
@@ -142,7 +154,7 @@ export default function PlayerDetailPage() {
           isLoading={appearances.isLoading}
         />
       ) : null}
-      {role === "batting" && latestSeason === 2026 ? (
+      {role === "batting" && latestSeason === CURRENT_SEASON ? (
         <BattingAppearanceTable
           data={battingAppearances.data}
           error={battingAppearances.error}
@@ -160,7 +172,7 @@ export default function PlayerDetailPage() {
         </div>
         <div className="panel">
           <div className="panel-header"><h2>다음 시즌 AI 예측</h2><BrainCircuit size={20} /></div>
-          {analysisSeason !== 2025 ? <div className="state-panel"><p>2025 완결 시즌 기록이 있는 현역 선수에게 제공됩니다.</p></div> : prediction.isLoading ? <LoadingPanel /> : prediction.isError ? <ErrorPanel error={prediction.error} /> : (
+          {analysisSeason !== LAST_COMPLETE_SEASON ? <div className="state-panel"><p>{LAST_COMPLETE_SEASON} 완결 시즌 기록이 있는 현역 선수에게 제공됩니다.</p></div> : prediction.isLoading ? <LoadingPanel /> : prediction.isError ? <ErrorPanel error={prediction.error} /> : (
             <div className="metric-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
               {prediction.data?.predictions.map((item) => <MetricCard key={item.target} label={labels[item.target] ?? item.target} value={formatMetric(item.target, item.prediction)} hint={`이전 ${formatMetric(item.target, item.previous_season_value)}`} />)}
             </div>

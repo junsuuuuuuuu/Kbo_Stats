@@ -38,6 +38,19 @@ class TeamRosterNotFoundError(ApplicationError):
         )
 
 
+class GameDayNotFoundError(ApplicationError):
+    """No collected game-day snapshot exists for the requested date or season."""
+
+    code = "GAME_DAY_NOT_FOUND"
+    status_code = 404
+
+    def __init__(self, season: int, game_date: str | None = None) -> None:
+        super().__init__(
+            "수집된 경기 일정·결과가 없습니다.",
+            {"season": season, "game_date": game_date},
+        )
+
+
 class AnalyticsNotAvailableError(ApplicationError):
     """선수 기록이 분석 기능의 최소 표본 조건을 만족하지 못한 경우."""
 

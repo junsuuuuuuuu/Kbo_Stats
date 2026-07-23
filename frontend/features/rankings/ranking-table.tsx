@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ErrorPanel, LoadingPanel, ScoreBar } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { AnalyticsRole, RankingValueType } from "@/types/api";
+import { LAST_COMPLETE_SEASON } from "@/lib/constants";
 
 interface RankingTableProps {
   role: AnalyticsRole;
@@ -14,7 +15,7 @@ interface RankingTableProps {
   valueType?: RankingValueType;
 }
 
-export function RankingTable({ role, season = 2025, limit = 20, valueType = "overall" }: RankingTableProps) {
+export function RankingTable({ role, season = LAST_COMPLETE_SEASON, limit = 20, valueType = "overall" }: RankingTableProps) {
   const query = useQuery({
     queryKey: ["rankings", role, season, limit, valueType],
     queryFn: () => api.rankings(role, season, undefined, limit, valueType),

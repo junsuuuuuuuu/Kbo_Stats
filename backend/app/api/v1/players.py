@@ -7,6 +7,7 @@ import httpx
 from fastapi import APIRouter, Path, Query
 
 from app.api.dependencies import PlayerServiceDependency
+from app.core.constants import CURRENT_SEASON
 from app.core.exceptions import UpstreamDataError
 from app.schemas.common import ErrorResponse
 from app.schemas.player import (
@@ -19,6 +20,7 @@ from app.schemas.player import (
     PitchingSeasonResponse,
     PlayerBenchmarksResponse,
     PlayerDetailResponse,
+    PlayerOverviewResponse,
     PlayerPageResponse,
     PlayerRole,
     PlayerSeasonsResponse,
@@ -114,6 +116,40 @@ def get_player_seasons(
 
 
 @router.get(
+    "/{player_id}/overview",
+    response_model=PlayerOverviewResponse,
+    responses=not_found_response,
+    summary="선수 프로필·시즌 기록 통합 조회",
+)
+def get_player_overview(
+    service: PlayerServiceDependency,
+    player_id: Annotated[int, Path(gt=0)],
+) -> PlayerOverviewResponse:
+    """상세 화면에 필요한 DB 데이터를 한 API 요청으로 반환한다."""
+
+    result = service.get_player_seasons(player_id, None)
+    birth_date = result.player.birth_date
+    seasons = PlayerSeasonsResponse(
+        player_id=result.player.player_id,
+        batting=[
+            BattingSeasonResponse.from_entity(
+                stat,
+                birth_date,
+                result.defensive_efficiencies.get((stat.season, stat.team_id)),
+                result.batting_metrics.get(id(stat)),
+                result.team_rankings.get((stat.season, stat.team_id)),
+            )
+            for stat in result.batting
+        ],
+        pitching=[PitchingSeasonResponse.from_entity(stat, birth_date) for stat in result.pitching],
+    )
+    return PlayerOverviewResponse(
+        player=PlayerDetailResponse.from_entity(result.player),
+        seasons=seasons,
+    )
+
+
+@router.get(
     "/{player_id}/pitching-appearances",
     response_model=PitchingAppearancesResponse,
     responses=not_found_response,
@@ -122,9 +158,9 @@ def get_player_seasons(
 def get_pitching_appearances(
     service: PlayerServiceDependency,
     player_id: Annotated[int, Path(gt=0)],
-    season: Annotated[int, Query(ge=2026, le=2026)] = 2026,
+    season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> PitchingAppearancesResponse:
-    """KBO 공식 일자별 기록에서 2026 정규시즌의 모든 등판을 반환한다."""
+    """KBO 공식 일자별 기록에서 현재 정규시즌의 모든 등판을 반환한다."""
 
     service.get_player(player_id)
     try:
@@ -152,9 +188,9 @@ def get_pitching_appearances(
 def get_batting_appearances(
     service: PlayerServiceDependency,
     player_id: Annotated[int, Path(gt=0)],
-    season: Annotated[int, Query(ge=2026, le=2026)] = 2026,
+    season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> BattingAppearancesResponse:
-    """KBO 공식 일자별 기록에서 2026 정규시즌의 모든 타자 출장을 반환한다."""
+    """KBO 공식 일자별 기록에서 현재 정규시즌의 모든 타자 출장을 반환한다."""
 
     service.get_player(player_id)
     try:

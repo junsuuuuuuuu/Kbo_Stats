@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kbo-ai-player-analytics-backend"
 version = "0.1.0"
-description = "KBO AI Player Analytics FastAPI backend"
+description = "기록의 다음 FastAPI backend"
 requires-python = ">=3.12,<3.15"
 dependencies = [
     "alembic>=1.14,<2",

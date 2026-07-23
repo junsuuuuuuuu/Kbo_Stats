@@ -25,6 +25,7 @@ async def test_openapi_contains_versioned_player_routes(client: AsyncClient) -> 
     paths = response.json()["paths"]
     assert "/api/v1/players" in paths
     assert "/api/v1/players/{player_id}/seasons" in paths
+    assert "/api/v1/players/{player_id}/overview" in paths
     assert "/api/v1/players/{player_id}/benchmarks" in paths
     assert "/api/v1/teams/{team_code}/roster" in paths
 
@@ -81,6 +82,18 @@ async def test_role_specific_season_response_skips_other_role(
     assert response.json() == {"player_id": 68050, "batting": [], "pitching": []}
     assert repository.batting_calls == 1
     assert repository.pitching_calls == 0
+
+
+async def test_player_overview_combines_profile_and_seasons(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/players/68050/overview")
+
+    assert response.status_code == 200
+    assert response.json()["player"]["player_name"] == "김도영"
+    assert response.json()["seasons"] == {
+        "player_id": 68050,
+        "batting": [],
+        "pitching": [],
+    }
 
 
 async def test_player_benchmark_contract(

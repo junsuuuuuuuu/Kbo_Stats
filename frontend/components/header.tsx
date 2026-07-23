@@ -16,7 +16,7 @@ export function Header() {
     <header className="site-header">
       <Link href="/" className="brand">
         <span className="brand-mark"><Activity size={20} /></span>
-        <span>KBO <strong>Records</strong></span>
+        <span>기록의 <strong>다음</strong></span>
       </Link>
       <nav className="nav-links">
         {links.map(({ href, label, icon: Icon }) => (

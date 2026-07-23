@@ -2,6 +2,7 @@
 
 from datetime import date
 
+from app.models.game_day import GameDaySnapshot
 from app.models.player import Player, PlayerSourceProfile
 from app.models.roster import TeamRoster
 from app.models.standing import TeamStanding
@@ -49,6 +50,7 @@ class FakePlayerRepository:
         self.metric_values: list[float] = []
         self.defensive_efficiencies: dict[tuple[int, int], float] = {}
         self.team_rankings: dict[tuple[int, int], int] = {}
+        self.last_league_seasons: set[int] | None = None
 
     def search(self, criteria: PlayerSearchCriteria) -> tuple[list[Player], int]:
         self.last_criteria = criteria
@@ -64,7 +66,8 @@ class FakePlayerRepository:
         self.batting_calls += 1
         return self.batting_stats
 
-    def list_league_batting_seasons(self, _season: int) -> list[BattingSeasonStat]:
+    def list_league_batting_seasons(self, seasons: set[int]) -> list[BattingSeasonStat]:
+        self.last_league_seasons = seasons
         return self.batting_stats
 
     def list_pitching_seasons(self, _player_id: int) -> list[PitchingSeasonStat]:
@@ -138,6 +141,18 @@ class FakeTeamRepository:
             source_url="https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx",
         )
         self.standing.team = member.team
+        payload = {
+            "game_date": "2026-07-20",
+            "games": [],
+            "source_url": "https://www.koreabaseball.com/Schedule/Schedule.aspx",
+        }
+        self.game_day: GameDaySnapshot | None = GameDaySnapshot(
+            snapshot_id=1,
+            season=2026,
+            game_date=date(2026, 7, 20),
+            source_url=payload["source_url"],
+            payload=payload,
+        )
 
     def list_latest_rosters(self, _season: int) -> list[TeamRosterSummary]:
         return [self.snapshot.summary] if self.snapshot is not None else []
@@ -147,3 +162,9 @@ class FakeTeamRepository:
 
     def get_latest_standing(self, _team_code: str, _season: int) -> TeamStanding | None:
         return self.standing
+
+    def get_latest_game_day(self, _season: int) -> GameDaySnapshot | None:
+        return self.game_day
+
+    def get_game_day(self, _season: int, _game_date: date) -> GameDaySnapshot | None:
+        return self.game_day

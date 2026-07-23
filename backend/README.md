@@ -1,4 +1,4 @@
-# KBO AI Player Analytics Backend
+# 기록의 다음 Backend
 
 FastAPI와 SQLAlchemy 2.x로 구현한 계층형 Backend입니다. 현재 4단계에서는 선수 검색,
 기본 정보 및 시즌 기록 조회 API를 제공합니다.
@@ -39,6 +39,7 @@ Copy-Item backend\.env.example backend\.env
 Set-Location backend
 ..\.venv\Scripts\python.exe -m alembic upgrade head
 ..\.venv\Scripts\python.exe scripts\import_data.py
+..\.venv\Scripts\python.exe -m scripts.collect_game_day
 ```
 
 Migration이 23개 팀 seed를 먼저 넣고, 적재기가 타자와 투수 파일을 별도 transaction으로
@@ -55,6 +56,8 @@ Set-Location backend
 - ReDoc: `http://localhost:8000/redoc`
 - Health: `http://localhost:8000/api/v1/health`
 - AI Analytics: `http://localhost:8000/api/v1/analytics/*`
+- 통합 선수 상세: `http://localhost:8000/api/v1/players/{player_id}/overview`
+- 저장된 최신 경기: `http://localhost:8000/api/v1/teams/games/latest`
 
 ## 품질 검사
 

@@ -290,6 +290,13 @@ class PlayerSeasonsResponse(BaseModel):
     pitching: list[PitchingSeasonResponse]
 
 
+class PlayerOverviewResponse(BaseModel):
+    """선수 상세 화면의 프로필과 시즌 기록을 한 응답으로 반환한다."""
+
+    player: PlayerDetailResponse
+    seasons: PlayerSeasonsResponse
+
+
 class PitchingAppearanceResponse(BaseModel):
     """한 경기의 투수 등판 기록."""
 

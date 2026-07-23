@@ -7,6 +7,7 @@ import type {
   PlayerDetail,
   PlayerBenchmarks,
   PlayerPage,
+  PlayerOverview,
   PitchingAppearances,
   PlayerSeasons,
   PredictionResponse,
@@ -20,6 +21,7 @@ import type {
   TeamRoster,
   TeamStanding,
 } from "@/types/api";
+import { CURRENT_SEASON, LAST_COMPLETE_SEASON } from "@/lib/constants";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -32,12 +34,16 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, params?: Record<string, string | number | boolean | undefined>) {
+async function request<T>(
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+  signal?: AbortSignal,
+) {
   const url = new URL(`${API_URL}${path}`);
   Object.entries(params ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== "") url.searchParams.set(key, String(value));
   });
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  const response = await fetch(url, { headers: { Accept: "application/json" }, signal });
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as
       | { error?: { message?: string } }
@@ -48,28 +54,29 @@ async function request<T>(path: string, params?: Record<string, string | number 
 }
 
 export const api = {
-  searchPlayers: (query: string, role?: string, page = 1) =>
-    request<PlayerPage>("/players", { query: query || undefined, role, page, page_size: 30 }),
+  searchPlayers: (query: string, role?: string, page = 1, signal?: AbortSignal) =>
+    request<PlayerPage>("/players", { query: query || undefined, role, page, page_size: 30 }, signal),
   player: (id: number) => request<PlayerDetail>(`/players/${id}`),
   seasons: (id: number) => request<PlayerSeasons>(`/players/${id}/seasons`),
-  pitchingAppearances: (id: number, season = 2026) =>
+  playerOverview: (id: number) => request<PlayerOverview>(`/players/${id}/overview`),
+  pitchingAppearances: (id: number, season = CURRENT_SEASON) =>
     request<PitchingAppearances>(`/players/${id}/pitching-appearances`, { season }),
-  battingAppearances: (id: number, season = 2026) =>
+  battingAppearances: (id: number, season = CURRENT_SEASON) =>
     request<BattingAppearances>(`/players/${id}/batting-appearances`, { season }),
   benchmarks: (id: number, role: AnalyticsRole, season: number) =>
     request<PlayerBenchmarks>(`/players/${id}/benchmarks`, { role: role.toUpperCase(), season }),
-  teams: (season = 2026) => request<TeamList>("/teams", { season }),
-  teamRoster: (teamCode: string, season = 2026) =>
+  teams: (season = CURRENT_SEASON) => request<TeamList>("/teams", { season }),
+  teamRoster: (teamCode: string, season = CURRENT_SEASON) =>
     request<TeamRoster>(`/teams/${teamCode}/roster`, { season }),
-  teamStanding: (teamCode: string, season = 2026) =>
+  teamStanding: (teamCode: string, season = CURRENT_SEASON) =>
     request<TeamStanding | null>(`/teams/${teamCode}/standing`, { season }),
-  teamGames: (teamCode: string, season = 2026) =>
+  teamGames: (teamCode: string, season = CURRENT_SEASON) =>
     request<TeamGameResults>(`/teams/${teamCode}/games`, { season }),
-  teamGame: (teamCode: string, gameId: string, season = 2026) =>
+  teamGame: (teamCode: string, gameId: string, season = CURRENT_SEASON) =>
     request<TeamGameDetail>(`/teams/${teamCode}/games/${gameId}`, { season }),
-  latestGames: (season = 2026) =>
+  latestGames: (season = CURRENT_SEASON) =>
     request<LatestGameDay>("/teams/games/latest", { season }),
-  gamesByDay: (gameDate: string, season = 2026) =>
+  gamesByDay: (gameDate: string, season = CURRENT_SEASON) =>
     request<LatestGameDay>("/teams/games/day", { game_date: gameDate, season }),
   prediction: (role: AnalyticsRole, id: number) =>
     request<PredictionResponse>(`/analytics/predictions/${role}/${id}`),
@@ -79,7 +86,7 @@ export const api = {
     request<PeakResponse>(`/analytics/peak/${role}/${id}`),
   similar: (role: AnalyticsRole, id: number, season?: number) =>
     request<SimilarResponse>(`/analytics/similar/${role}/${id}`, { season, limit: 10 }),
-  rankings: (role: AnalyticsRole, season = 2025, team?: string, limit = 30, valueType: RankingValueType = "overall") =>
+  rankings: (role: AnalyticsRole, season = LAST_COMPLETE_SEASON, team?: string, limit = 30, valueType: RankingValueType = "overall") =>
     request<RankingResponse>("/analytics/rankings", { role, season, team, limit, value_type: valueType }),
   discover: (params: Record<string, string | number | boolean | undefined>) =>
     request<DiscoveryResponse>("/analytics/discover", params),

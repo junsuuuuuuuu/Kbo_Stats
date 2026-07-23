@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { DragScroll } from "@/components/drag-scroll";
 import { ErrorPanel, LoadingPanel } from "@/components/ui";
+import { CURRENT_SEASON } from "@/lib/constants";
 import type { TeamGameResults } from "@/types/api";
 
 const resultLabels = { W: "승", L: "패", D: "무" } as const;
@@ -21,7 +22,7 @@ export function TeamGameResultTable({ teamCode, data, error, isError, isLoading 
   return (
     <section className="section panel team-game-panel">
       <div className="panel-header">
-        <div><span className="eyebrow">2026 GAME BY GAME</span><h2>날짜별 승·패 기록</h2></div>
+        <div><span className="eyebrow">{CURRENT_SEASON} GAME BY GAME</span><h2>날짜별 승·패 기록</h2></div>
         <span className="muted">끌어서 전체 경기 확인</span>
       </div>
       {isLoading ? <LoadingPanel label="구단 경기 결과를 불러오고 있습니다" /> : isError ? <ErrorPanel error={error} /> : !data?.items.length ? (

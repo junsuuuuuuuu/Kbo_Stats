@@ -1,4 +1,4 @@
-# KBO AI Player Analytics 전체 아키텍처
+# 기록의 다음 전체 아키텍처
 
 ## 1. 설계 목표
 
@@ -39,6 +39,7 @@ FastAPI (Railway 또는 Render)
 
 오프라인 파이프라인
   CSV 2개 → 검증/정제 → MySQL 적재
+  예약 수집 → KBO 일정·경기 상세 → 날짜별 JSON 스냅샷 저장
   MySQL/정제 데이터 → 특징 생성 → 시계열 검증 → 모델 저장
 ```
 
@@ -141,7 +142,8 @@ Kbo_Stats/
 
 ## 6. 데이터 및 DB 경계 초안
 
-CSV는 유일한 원천 데이터(source of truth)이며 원본 파일을 직접 수정하지 않는다.
+시즌 기록 CSV와 공식 KBO 수집 응답을 원천 데이터(source of truth)로 사용하며 원본 파일을
+직접 수정하지 않는다.
 DB는 조회 성능과 무결성을 위한 서비스 저장소로 사용한다.
 
 예상 핵심 엔터티는 다음과 같다.
@@ -178,7 +180,10 @@ DB는 조회 성능과 무결성을 위한 서비스 저장소로 사용한다.
 ```text
 GET  /players                         선수 검색/필터/페이지네이션
 GET  /players/{player_id}             선수 기본 정보
+GET  /players/{player_id}/overview    프로필·시즌 기록 통합
 GET  /players/{player_id}/seasons     시즌별 타격/투구 기록
+GET  /teams/games/latest              저장된 최신 경기일 결과
+GET  /teams/games/day                 저장된 지정 날짜 일정·결과
 GET  /players/{player_id}/growth      성장곡선과 변곡 시즌
 POST /comparisons                     두 선수 비교 데이터
 POST /predictions/next-season         다음 시즌 예측
@@ -320,3 +325,4 @@ baseline 대비 허용 기준을 확인한다.
 4. **연도 기반 검증**: 야구 시계열의 미래 정보 누수를 방지한다.
 5. **도메인 데이터 API**: Plotly에 종속된 JSON을 Backend가 만들지 않는다.
 6. **타자/투수 모델 분리**: 의미와 분포가 다른 지표를 무리하게 하나로 합치지 않는다.
+7. **경기 스냅샷 선수집**: 홈 요청의 외부 장애·지연을 제거하고 부분 성공을 보존한다.

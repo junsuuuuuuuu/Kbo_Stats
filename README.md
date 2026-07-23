@@ -1,6 +1,6 @@
-# KBO AI Player Analytics
+# 기록의 다음
 
-1982~2025 KBO 선수 시즌 기록을 바탕으로 검색, 비교, 성장 분석, 성적 예측,
+1982~2026 KBO 선수 시즌 기록을 바탕으로 검색, 비교, 성장 분석, 성적 예측,
 유사 선수 추천 및 선수 가치 랭킹을 제공하는 AI 데이터 분석 플랫폼입니다.
 
 단순 CRUD가 아니라 **재현 가능한 데이터 파이프라인**, **오프라인 ML 학습**,
@@ -181,6 +181,22 @@ Set-Location backend
 - API: `GET /api/v1/players/{player_id}/benchmarks?role=BATTING&season=2026`
 - 품질 요약: `reports/kbo-2026-standings-snapshot.json`
 - 선수 백분위 표본: 타자 100타석 이상, 투수 30이닝 이상
+
+### 홈 경기 일정·결과 스냅샷
+
+홈 화면은 사용자 요청 때 KBO 사이트를 호출하지 않고 `game_day_snapshots`에 저장된
+날짜별 응답을 조회합니다. 다음 명령은 최신 완료 경기일 또는 지정 날짜를 수집해 같은
+시즌·날짜 레코드를 갱신합니다. 개별 경기 상세 수집이 실패하면 성공한 경기와 기본
+스코어를 우선 저장합니다.
+
+```powershell
+Set-Location backend
+..\.venv\Scripts\python.exe -m scripts.collect_game_day
+..\.venv\Scripts\python.exe -m scripts.collect_game_day --date 2026-07-22
+```
+
+운영 환경에서는 `.github/workflows/collect-game-day.yml`이 3~10월 매일 23:30 KST에
+실행됩니다. 저장소 Secret `DATABASE_URL`을 배포 DB 접속 문자열로 등록해야 합니다.
 
 구단 상세 화면은 전적과 팀 내 타자·투수 가치 리더, 로스터 연령 구성을 함께 보여줍니다.
 선수 상세 화면은 동일 시즌 리그 평균·백분위와 데뷔·이적·커리어 하이 타임라인을 제공합니다.

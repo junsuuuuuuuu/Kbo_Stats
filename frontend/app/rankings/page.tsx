@@ -5,15 +5,16 @@ import { useState } from "react";
 
 import { SectionTitle } from "@/components/ui";
 import { RankingTable } from "@/features/rankings/ranking-table";
+import { CURRENT_SEASON, LAST_COMPLETE_SEASON } from "@/lib/constants";
 import type { AnalyticsRole, RankingValueType } from "@/types/api";
 
-const RANKING_SEASONS = [2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
+const RANKING_SEASONS = [2020, 2021, 2022, 2023, 2024, LAST_COMPLETE_SEASON, CURRENT_SEASON] as const;
 
 export default function RankingsPage() {
   const [role, setRole] = useState<AnalyticsRole>("batting");
-  const [season, setSeason] = useState<number>(2026);
+  const [season, setSeason] = useState<number>(CURRENT_SEASON);
   const [valueType, setValueType] = useState<RankingValueType>("overall");
-  const isCurrentSeason = season === 2026;
+  const isCurrentSeason = season === CURRENT_SEASON;
 
   return (
     <div className="page">
@@ -67,7 +68,7 @@ export default function RankingsPage() {
 
         <p className="ranking-notice">
           {isCurrentSeason
-            ? "2026 랭킹은 2026-07-20 기준 진행 중 기록입니다. 시즌 종료 후 점수가 달라질 수 있습니다."
+            ? `${CURRENT_SEASON} 랭킹은 최신 수집일 기준 진행 중 기록입니다. 시즌 종료 후 점수가 달라질 수 있습니다.`
             : `${season} 정규시즌 기록 기준입니다.`}
           {" · "}최소 타자 100 PA · 투수 30 IP
         </p>

@@ -8,12 +8,13 @@ import { useState } from "react";
 import { ErrorPanel, LoadingPanel, SectionTitle } from "@/components/ui";
 import { api } from "@/lib/api";
 import { buildDiscoveryParams } from "@/lib/analytics";
+import { LAST_COMPLETE_SEASON } from "@/lib/constants";
 import type { AnalyticsRole } from "@/types/api";
 
 export default function DiscoverPage() {
   const [role, setRole] = useState<AnalyticsRole>("batting");
   const [form, setForm] = useState({ max_age: "25", min_ops: "0.8", min_obp: "", min_slg: "", min_home_runs: "", max_era: "4.0", min_strikeouts: "50" });
-  const [submitted, setSubmitted] = useState<Record<string, string | number | undefined>>({ role, season: 2025, max_age: 25, min_ops: .8 });
+  const [submitted, setSubmitted] = useState<Record<string, string | number | undefined>>({ role, season: LAST_COMPLETE_SEASON, max_age: 25, min_ops: .8 });
   const query = useQuery({ queryKey: ["discover", submitted], queryFn: () => api.discover(submitted) });
   const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const submit = (event: React.FormEvent) => {

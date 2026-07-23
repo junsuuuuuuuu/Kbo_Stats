@@ -8,6 +8,7 @@ import { useState } from "react";
 import { DragScroll } from "@/components/drag-scroll";
 import { ErrorPanel, LoadingPanel, SectionTitle } from "@/components/ui";
 import { api } from "@/lib/api";
+import { CURRENT_SEASON } from "@/lib/constants";
 import type { GameDayStar, LatestGameSummary } from "@/types/api";
 
 function Ace({ hitter, pitcher }: { hitter: GameDayStar; pitcher: GameDayStar }) {
@@ -51,8 +52,8 @@ function dateWithWeekday(value: string) {
 export function LatestGameDayTable() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const latest = useQuery({
-    queryKey: ["game-day", selectedDate ?? "latest", 2026],
-    queryFn: () => selectedDate ? api.gamesByDay(selectedDate, 2026) : api.latestGames(2026),
+    queryKey: ["game-day", selectedDate ?? "latest", CURRENT_SEASON],
+    queryFn: () => selectedDate ? api.gamesByDay(selectedDate, CURRENT_SEASON) : api.latestGames(CURRENT_SEASON),
   });
   const showAces = latest.data?.games.some((game) => game.away_hitter || game.home_hitter) ?? false;
 

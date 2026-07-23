@@ -1,4 +1,4 @@
--- KBO AI Player Analytics - MySQL 8.0 초기 스키마
+-- 기록의 다음 - MySQL 8.0 초기 스키마
 -- 이 파일은 3단계의 실행 가능한 DB 계약이다. 4단계에서 동일 구조의
 -- SQLAlchemy 모델과 Alembic revision을 작성하고 schema diff로 대조한다.
 

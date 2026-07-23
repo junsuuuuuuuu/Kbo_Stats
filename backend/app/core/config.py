@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     secret 환경변수로 덮어쓴다.
     """
 
-    app_name: str = "KBO AI Player Analytics API"
+    app_name: str = "기록의 다음 API"
     app_env: str = "local"
     api_v1_prefix: str = "/api/v1"
     database_url: str = (

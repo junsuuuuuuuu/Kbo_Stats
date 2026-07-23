@@ -27,6 +27,12 @@ ML_N_JOBS=1
 5. `/api/v1/health`가 성공한 후 트래픽을 받는다.
 6. 최초 1회 `python scripts/import_data.py`를 Railway shell에서 실행한다.
 
+## 경기 결과 예약 수집
+
+GitHub Actions 저장소 Secret에 운영 DB의 `DATABASE_URL`을 등록한다.
+`collect-game-day.yml`은 3~10월 매일 23:30 KST에 migration을 적용한 뒤 최신 경기일을
+수집한다. 수동 실행 시 `game_date` 입력으로 특정 날짜를 다시 수집할 수 있다.
+
 ## Render
 
 `render.yaml` Blueprint를 사용한다. Render는 관리형 MySQL을 제공하지 않으므로 외부 MySQL

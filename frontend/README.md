@@ -1,4 +1,4 @@
-# KBO AI Player Analytics Frontend
+# 기록의 다음 Frontend
 
 Next.js App Router, TypeScript, Tailwind CSS, TanStack Query와 Plotly로 구성한 분석 UI입니다.
 

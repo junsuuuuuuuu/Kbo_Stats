@@ -7,17 +7,18 @@ import Link from "next/link";
 import { TeamLogo } from "@/components/team-logo";
 import { ErrorPanel, LoadingPanel, SectionTitle } from "@/components/ui";
 import { api } from "@/lib/api";
+import { CURRENT_SEASON } from "@/lib/constants";
 
 export default function TeamsPage() {
   const teams = useQuery({
-    queryKey: ["teams", 2026],
-    queryFn: () => api.teams(2026),
+    queryKey: ["teams", CURRENT_SEASON],
+    queryFn: () => api.teams(CURRENT_SEASON),
   });
 
   return (
     <div className="page">
       <SectionTitle
-        eyebrow="2026 Active Rosters"
+        eyebrow={`${CURRENT_SEASON} Active Rosters`}
         title="구단별 1군 로스터"
         description="KBO 공식 선수 등록 현황 기준입니다. 구단을 선택해 등록 선수를 확인하세요."
       />

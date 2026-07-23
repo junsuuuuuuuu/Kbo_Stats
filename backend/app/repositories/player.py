@@ -62,7 +62,7 @@ class PlayerRepository(Protocol):
 
     def list_batting_seasons(self, player_id: int) -> list[BattingSeasonStat]: ...
 
-    def list_league_batting_seasons(self, season: int) -> list[BattingSeasonStat]: ...
+    def list_league_batting_seasons(self, seasons: set[int]) -> list[BattingSeasonStat]: ...
 
     def list_pitching_seasons(self, player_id: int) -> list[PitchingSeasonStat]: ...
 
@@ -163,10 +163,10 @@ class SqlAlchemyPlayerRepository:
         )
         return list(self._session.scalars(statement).unique().all())
 
-    def list_league_batting_seasons(self, season: int) -> list[BattingSeasonStat]:
-        """파생 타격 지표의 시즌 리그 기준값 계산용 원시 기록을 반환한다."""
+    def list_league_batting_seasons(self, seasons: set[int]) -> list[BattingSeasonStat]:
+        """여러 시즌의 리그 기준 기록을 한 번의 DB 조회로 반환한다."""
 
-        statement = select(BattingSeasonStat).where(BattingSeasonStat.season == season)
+        statement = select(BattingSeasonStat).where(BattingSeasonStat.season.in_(seasons))
         return list(self._session.scalars(statement).all())
 
     def list_pitching_seasons(self, player_id: int) -> list[PitchingSeasonStat]:

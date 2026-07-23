@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
-import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import date
 from html.parser import HTMLParser
-from threading import Lock
 
 import httpx
 
+from app.services.cache import BoundedTTLCache
 from app.services.kbo_game_log import KBO_BASE_URL, USER_AGENT
 
 SCHEDULE_PATH = "/Schedule/Schedule.aspx"
@@ -26,6 +26,7 @@ _DATE_PATTERN = re.compile(r"^(\d{2})\.(\d{2})")
 _HREF_PATTERN = re.compile(r"href=['\"]([^'\"]+)")
 _GAME_ID_PATTERN = re.compile(r"[?&]gameId=([A-Z0-9]+)")
 _VALID_GAME_ID = re.compile(r"^\d{8}[A-Z0-9]{5,8}$")
+logger = logging.getLogger("kbo_api")
 
 
 class _FragmentTextParser(HTMLParser):
@@ -322,23 +323,27 @@ def parse_game_day_rows(
 
 
 class KboTeamScheduleClient:
-    def __init__(self, ttl_seconds: int = 900) -> None:
-        self._ttl_seconds = ttl_seconds
-        self._cache: dict[tuple[str, int], tuple[float, list[TeamGameResult]]] = {}
-        self._detail_cache: dict[str, tuple[float, TeamGameDetail]] = {}
-        self._latest_cache: dict[int, tuple[float, LatestGameDay]] = {}
-        self._day_cache: dict[str, tuple[float, LatestGameDay]] = {}
-        self._lock = Lock()
+    def __init__(self, ttl_seconds: int = 900, max_cache_size: int = 256) -> None:
+        self._cache = BoundedTTLCache[tuple[str, int], list[TeamGameResult]](
+            max_size=32, ttl_seconds=ttl_seconds
+        )
+        self._detail_cache = BoundedTTLCache[str, TeamGameDetail](
+            max_size=max_cache_size, ttl_seconds=ttl_seconds
+        )
+        self._latest_cache = BoundedTTLCache[int, LatestGameDay](
+            max_size=8, ttl_seconds=ttl_seconds
+        )
+        self._day_cache = BoundedTTLCache[str, LatestGameDay](
+            max_size=64, ttl_seconds=ttl_seconds
+        )
 
     def results(self, team_code: str, season: int) -> list[TeamGameResult]:
         normalized = team_code.strip().upper()
         team_name = TEAM_NAMES[normalized]
         key = (normalized, season)
-        now = time.monotonic()
-        with self._lock:
-            cached = self._cache.get(key)
-            if cached and now - cached[0] < self._ttl_seconds:
-                return cached[1]
+        cached = self._cache.get(key)
+        if cached is not None:
+            return cached
 
         final_month = min(date.today().month, 10) if season == date.today().year else 10
         headers = {
@@ -350,26 +355,39 @@ class KboTeamScheduleClient:
         games: list[TeamGameResult] = []
         with httpx.Client(headers=headers, timeout=12.0, follow_redirects=True) as client:
             client.get(f"{KBO_BASE_URL}{SCHEDULE_PATH}").raise_for_status()
+            successful_months = 0
             for month in range(3, final_month + 1):
-                response = client.post(
-                    f"{KBO_BASE_URL}{SCHEDULE_API_PATH}",
-                    data={
-                        "leId": "1", "srIdList": "0,9,6", "seasonId": str(season),
-                        "gameMonth": f"{month:02d}", "teamId": normalized,
-                    },
-                )
-                response.raise_for_status()
-                payload = response.json()
-                if not isinstance(payload, dict):
-                    raise ValueError("KBO 일정 API 응답 형식이 올바르지 않습니다.")
+                try:
+                    response = client.post(
+                        f"{KBO_BASE_URL}{SCHEDULE_API_PATH}",
+                        data={
+                            "leId": "1", "srIdList": "0,9,6", "seasonId": str(season),
+                            "gameMonth": f"{month:02d}", "teamId": normalized,
+                        },
+                    )
+                    response.raise_for_status()
+                    payload = response.json()
+                    if not isinstance(payload, dict):
+                        raise ValueError("KBO 일정 API 응답 형식이 올바르지 않습니다.")
+                except (httpx.HTTPError, ValueError) as exception:
+                    logger.warning(
+                        "kbo_schedule_month_failed team=%s season=%s month=%s error=%s",
+                        normalized,
+                        season,
+                        month,
+                        exception,
+                    )
+                    continue
+                successful_months += 1
                 games.extend(
                     parse_team_schedule_rows(
                         payload.get("rows", []), season=season, team_name=team_name
                     )
                 )
+        if successful_months == 0:
+            raise ValueError("KBO 일정 API의 모든 월별 요청이 실패했습니다.")
         games.sort(key=lambda game: game.game_date, reverse=True)
-        with self._lock:
-            self._cache[key] = (now, games)
+        self._cache.set(key, games)
         return games
 
     @staticmethod
@@ -458,11 +476,9 @@ class KboTeamScheduleClient:
     def game_detail(self, game_id: str, season: int) -> TeamGameDetail:
         if not _VALID_GAME_ID.fullmatch(game_id):
             raise ValueError("올바르지 않은 KBO 경기 ID입니다.")
-        now = time.monotonic()
-        with self._lock:
-            cached = self._detail_cache.get(game_id)
-            if cached and now - cached[0] < self._ttl_seconds:
-                return cached[1]
+        cached = self._detail_cache.get(game_id)
+        if cached is not None:
+            return cached
 
         game_date = game_id[:8]
         main_url = (
@@ -500,8 +516,7 @@ class KboTeamScheduleClient:
             home=self._team_box(index=1, score=score, box=box),
             key_events=events, source_url=main_url,
         )
-        with self._lock:
-            self._detail_cache[game_id] = (now, detail)
+        self._detail_cache.set(game_id, detail)
         return detail
 
     @staticmethod
@@ -601,11 +616,9 @@ class KboTeamScheduleClient:
         )
 
     def latest_game_day(self, season: int) -> LatestGameDay:
-        now = time.monotonic()
-        with self._lock:
-            cached = self._latest_cache.get(season)
-            if cached and now - cached[0] < self._ttl_seconds:
-                return cached[1]
+        cached = self._latest_cache.get(season)
+        if cached is not None:
+            return cached
 
         final_month = min(date.today().month, 10) if season == date.today().year else 10
         schedule_url = f"{KBO_BASE_URL}{SCHEDULE_PATH}"
@@ -644,30 +657,18 @@ class KboTeamScheduleClient:
             raise ValueError("완료된 KBO 경기를 찾을 수 없습니다.")
 
         latest_date = max(dated_game_ids)
-        game_ids = sorted(dated_game_ids[latest_date])
-        with ThreadPoolExecutor(max_workers=min(5, len(game_ids))) as executor:
-            details = list(
-                executor.map(lambda game_id: self.game_detail(game_id, season), game_ids)
-            )
-        summaries = [self._game_summary(detail) for detail in details]
-        result = LatestGameDay(
-            game_date=latest_date,
-            games=summaries,
-            source_url=schedule_url,
-        )
-        with self._lock:
-            self._latest_cache[season] = (now, result)
+        # Reuse the day collector so failed box-score requests retain the basic score.
+        result = self.game_day(latest_date, season)
+        self._latest_cache.set(season, result)
         return result
 
     def game_day(self, target_date: str, season: int) -> LatestGameDay:
         parsed_date = date.fromisoformat(target_date)
         if parsed_date.year != season:
             raise ValueError("조회 날짜와 시즌이 일치하지 않습니다.")
-        now = time.monotonic()
-        with self._lock:
-            cached = self._day_cache.get(target_date)
-            if cached and now - cached[0] < self._ttl_seconds:
-                return cached[1]
+        cached = self._day_cache.get(target_date)
+        if cached is not None:
+            return cached
 
         schedule_url = f"{KBO_BASE_URL}{SCHEDULE_PATH}"
         headers = {
@@ -717,10 +718,20 @@ class KboTeamScheduleClient:
         details_by_id: dict[str, TeamGameDetail] = {}
         if completed:
             with ThreadPoolExecutor(max_workers=min(5, len(completed))) as executor:
-                details = executor.map(
-                    lambda game: self.game_detail(game.game_id, season), completed
-                )
-                details_by_id = {detail.game_id: detail for detail in details}
+                futures = {
+                    executor.submit(self.game_detail, game.game_id, season): game.game_id
+                    for game in completed
+                }
+                for future in as_completed(futures):
+                    try:
+                        detail = future.result()
+                        details_by_id[detail.game_id] = detail
+                    except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
+                        logger.warning(
+                            "kbo_game_detail_failed game_id=%s error=%s",
+                            futures[future],
+                            exception,
+                        )
 
         summaries: list[LatestGameSummary] = []
         for game in scheduled_games:
@@ -728,17 +739,28 @@ class KboTeamScheduleClient:
             if detail:
                 summaries.append(self._game_summary(detail))
                 continue
+            away_result = home_result = None
+            if game.away_score is not None and game.home_score is not None:
+                away_result = "D" if game.away_score == game.home_score else (
+                    "W" if game.away_score > game.home_score else "L"
+                )
+                home_result = "D" if away_result == "D" else ("L" if away_result == "W" else "W")
             summaries.append(
                 LatestGameSummary(
                     game_id=game.game_id,
                     stadium=game.stadium,
                     start_time=game.start_time,
-                    status="cancelled" if game.cancellation_reason else "scheduled",
+                    status=(
+                        "cancelled" if game.cancellation_reason else
+                        "completed" if game.away_score is not None else "scheduled"
+                    ),
                     away=GameDayTeam(
-                        TEAM_CODES_BY_NAME[game.away_name], game.away_name, None, None, None, None
+                        TEAM_CODES_BY_NAME[game.away_name], game.away_name,
+                        away_result, game.away_score, None, None
                     ),
                     home=GameDayTeam(
-                        TEAM_CODES_BY_NAME[game.home_name], game.home_name, None, None, None, None
+                        TEAM_CODES_BY_NAME[game.home_name], game.home_name,
+                        home_result, game.home_score, None, None
                     ),
                     away_hitter=None,
                     away_pitcher=None,
@@ -752,8 +774,7 @@ class KboTeamScheduleClient:
                 )
             )
         result = LatestGameDay(target_date, summaries, schedule_url)
-        with self._lock:
-            self._day_cache[target_date] = (now, result)
+        self._day_cache.set(target_date, result)
         return result
 
 

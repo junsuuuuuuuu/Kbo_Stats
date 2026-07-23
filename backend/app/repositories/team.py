@@ -7,6 +7,7 @@ from typing import Protocol
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session, joinedload
 
+from app.models.game_day import GameDaySnapshot
 from app.models.roster import TeamRoster
 from app.models.standing import TeamStanding
 from app.models.team import Team
@@ -36,6 +37,10 @@ class TeamRepository(Protocol):
     def get_latest_roster(self, team_code: str, season: int) -> TeamRosterSnapshot | None: ...
 
     def get_latest_standing(self, team_code: str, season: int) -> TeamStanding | None: ...
+
+    def get_latest_game_day(self, season: int) -> GameDaySnapshot | None: ...
+
+    def get_game_day(self, season: int, game_date: date) -> GameDaySnapshot | None: ...
 
 
 class SqlAlchemyTeamRepository:
@@ -141,5 +146,21 @@ class SqlAlchemyTeamRepository:
             TeamStanding.season == season,
             TeamStanding.team_code == team_code,
             TeamStanding.as_of_date == latest_date.scalar_subquery(),
+        )
+        return self._session.scalar(statement)
+
+    def get_latest_game_day(self, season: int) -> GameDaySnapshot | None:
+        statement = (
+            select(GameDaySnapshot)
+            .where(GameDaySnapshot.season == season)
+            .order_by(GameDaySnapshot.game_date.desc())
+            .limit(1)
+        )
+        return self._session.scalar(statement)
+
+    def get_game_day(self, season: int, game_date: date) -> GameDaySnapshot | None:
+        statement = select(GameDaySnapshot).where(
+            GameDaySnapshot.season == season,
+            GameDaySnapshot.game_date == game_date,
         )
         return self._session.scalar(statement)

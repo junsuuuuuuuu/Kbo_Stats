@@ -1,1 +1,1 @@
-"""KBO AI Player Analytics Backend 애플리케이션 패키지."""
+"""기록의 다음 Backend 애플리케이션 패키지."""

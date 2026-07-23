@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { TeamLogo } from "@/components/team-logo";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
 import { api } from "@/lib/api";
+import { CURRENT_SEASON } from "@/lib/constants";
 import { TeamGameResultTable } from "@/features/teams/team-game-results";
 import type { RosterMember } from "@/types/api";
 
@@ -30,29 +31,29 @@ export default function TeamRosterPage() {
   const teamCode = code.toUpperCase();
   const [position, setPosition] = useState<(typeof positions)[number]["value"]>("ALL");
   const roster = useQuery({
-    queryKey: ["team-roster", teamCode, 2026],
-    queryFn: () => api.teamRoster(teamCode, 2026),
+    queryKey: ["team-roster", teamCode, CURRENT_SEASON],
+    queryFn: () => api.teamRoster(teamCode, CURRENT_SEASON),
     enabled: teamCode.length === 2,
   });
   const standing = useQuery({
-    queryKey: ["team-standing", teamCode, 2026],
-    queryFn: () => api.teamStanding(teamCode, 2026),
+    queryKey: ["team-standing", teamCode, CURRENT_SEASON],
+    queryFn: () => api.teamStanding(teamCode, CURRENT_SEASON),
     enabled: teamCode.length === 2,
   });
   const games = useQuery({
-    queryKey: ["team-games", teamCode, 2026],
-    queryFn: () => api.teamGames(teamCode, 2026),
+    queryKey: ["team-games", teamCode, CURRENT_SEASON],
+    queryFn: () => api.teamGames(teamCode, CURRENT_SEASON),
     enabled: teamCode.length === 2,
   });
   const teamName = roster.data?.team.team_name;
   const battingLeaders = useQuery({
-    queryKey: ["team-leaders", "batting", teamName, 2026],
-    queryFn: () => api.rankings("batting", 2026, teamName, 5),
+    queryKey: ["team-leaders", "batting", teamName, CURRENT_SEASON],
+    queryFn: () => api.rankings("batting", CURRENT_SEASON, teamName, 5),
     enabled: Boolean(teamName),
   });
   const pitchingLeaders = useQuery({
-    queryKey: ["team-leaders", "pitching", teamName, 2026],
-    queryFn: () => api.rankings("pitching", 2026, teamName, 5),
+    queryKey: ["team-leaders", "pitching", teamName, CURRENT_SEASON],
+    queryFn: () => api.rankings("pitching", CURRENT_SEASON, teamName, 5),
     enabled: Boolean(teamName),
   });
   const members = useMemo(
@@ -80,7 +81,7 @@ export default function TeamRosterPage() {
       <Link className="back-link" href="/teams"><ArrowLeft size={16} />구단 목록</Link>
       <header className="player-heading team-heading">
         <div>
-          <span className="eyebrow">2026 ACTIVE ROSTER · {team?.as_of_date}</span>
+          <span className="eyebrow">{CURRENT_SEASON} ACTIVE ROSTER · {team?.as_of_date}</span>
           <h1>{team?.team_name}</h1>
           <p className="muted">KBO 공식 1군 선수 등록 현황</p>
         </div>

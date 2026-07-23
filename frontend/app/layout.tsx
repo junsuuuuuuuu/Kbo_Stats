@@ -4,10 +4,11 @@ import { Header } from "@/components/header";
 import { Providers } from "@/app/providers";
 
 import "./globals.css";
+import { CURRENT_SEASON, FIRST_KBO_SEASON } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "KBO Records — 선수 기록과 커리어 분석",
-  description: "1982~2025 KBO 기록을 탐색하고 선수의 커리어를 비교하는 데이터 플랫폼",
+  title: "기록의 다음 — KBO 데이터 & AI",
+  description: `${FIRST_KBO_SEASON}~${CURRENT_SEASON} KBO 기록과 현재 가치, 성장 흐름, 다음 시즌을 함께 살펴보는 야구 데이터 분석 서비스`,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -7,6 +7,7 @@ import httpx
 from fastapi import APIRouter, Path, Query
 
 from app.api.dependencies import TeamServiceDependency
+from app.core.constants import CURRENT_SEASON, FIRST_KBO_SEASON
 from app.core.exceptions import UpstreamDataError
 from app.schemas.common import ErrorResponse
 from app.schemas.team import (
@@ -28,7 +29,7 @@ router = APIRouter(prefix="/teams", tags=["Teams"])
 @router.get("", response_model=TeamListResponse, summary="구단 목록 조회")
 def list_teams(
     service: TeamServiceDependency,
-    season: Annotated[int, Query(ge=1982, le=2200)] = 2026,
+    season: Annotated[int, Query(ge=FIRST_KBO_SEASON, le=2200)] = CURRENT_SEASON,
 ) -> TeamListResponse:
     results = service.list_teams(season)
     return TeamListResponse(
@@ -46,7 +47,7 @@ def list_teams(
 def get_team_roster(
     service: TeamServiceDependency,
     team_code: Annotated[str, Path(min_length=2, max_length=2)],
-    season: Annotated[int, Query(ge=1982, le=2200)] = 2026,
+    season: Annotated[int, Query(ge=FIRST_KBO_SEASON, le=2200)] = CURRENT_SEASON,
 ) -> TeamRosterResponse:
     return TeamRosterResponse.from_result(service.get_roster(team_code, season))
 
@@ -59,7 +60,7 @@ def get_team_roster(
 def get_team_standing(
     service: TeamServiceDependency,
     team_code: Annotated[str, Path(min_length=2, max_length=2)],
-    season: Annotated[int, Query(ge=1982, le=2200)] = 2026,
+    season: Annotated[int, Query(ge=FIRST_KBO_SEASON, le=2200)] = CURRENT_SEASON,
 ) -> TeamStandingResponse | None:
     standing = service.get_standing(team_code, season)
     return TeamStandingResponse.from_entity(standing) if standing is not None else None
@@ -71,13 +72,10 @@ def get_team_standing(
     summary="가장 최근 경기일의 전체 경기와 대표 선수 조회",
 )
 def get_latest_games(
-    season: Annotated[int, Query(ge=2026, le=2026)] = 2026,
+    service: TeamServiceDependency,
+    season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> LatestGameDayResponse:
-    try:
-        result = kbo_team_schedule_client.latest_game_day(season)
-    except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
-        raise UpstreamDataError() from exception
-    return LatestGameDayResponse.model_validate(result, from_attributes=True)
+    return LatestGameDayResponse.model_validate(service.get_latest_game_day(season).payload)
 
 
 @router.get(
@@ -86,14 +84,11 @@ def get_latest_games(
     summary="선택한 날짜의 전체 경기 또는 일정 조회",
 )
 def get_games_by_day(
+    service: TeamServiceDependency,
     game_date: Annotated[date, Query()],
-    season: Annotated[int, Query(ge=2026, le=2026)] = 2026,
+    season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> LatestGameDayResponse:
-    try:
-        result = kbo_team_schedule_client.game_day(game_date.isoformat(), season)
-    except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
-        raise UpstreamDataError() from exception
-    return LatestGameDayResponse.model_validate(result, from_attributes=True)
+    return LatestGameDayResponse.model_validate(service.get_game_day(game_date, season).payload)
 
 
 @router.get(
@@ -104,7 +99,7 @@ def get_games_by_day(
 def get_team_games(
     service: TeamServiceDependency,
     team_code: Annotated[str, Path(min_length=2, max_length=2)],
-    season: Annotated[int, Query(ge=2026, le=2026)] = 2026,
+    season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> TeamGameResultsResponse:
     normalized = team_code.strip().upper()
     service.get_roster(normalized, season)
@@ -129,7 +124,7 @@ def get_team_game_detail(
     service: TeamServiceDependency,
     team_code: Annotated[str, Path(min_length=2, max_length=2)],
     game_id: Annotated[str, Path(min_length=13, max_length=16)],
-    season: Annotated[int, Query(ge=2026, le=2026)] = 2026,
+    season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> TeamGameDetailResponse:
     normalized = team_code.strip().upper()
     service.get_roster(normalized, season)

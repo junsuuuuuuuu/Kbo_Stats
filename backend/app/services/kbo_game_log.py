@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import re
-import time
 from dataclasses import dataclass
 from html.parser import HTMLParser
-from threading import Lock
 
 import httpx
+
+from app.services.cache import BoundedTTLCache
 
 KBO_BASE_URL = "https://www.koreabaseball.com"
 DAILY_PATH = "/Record/Player/PitcherDetail/Daily.aspx"
@@ -159,18 +159,17 @@ def parse_batting_appearances(page: str, season: int) -> list[BattingAppearance]
 class KboGameLogClient:
     """짧은 TTL 캐시를 둔 KBO 일자별 기록 클라이언트."""
 
-    def __init__(self, ttl_seconds: int = 900) -> None:
-        self._ttl_seconds = ttl_seconds
-        self._cache: dict[tuple[str, int, int], tuple[float, list[object]]] = {}
-        self._lock = Lock()
+    def __init__(self, ttl_seconds: int = 900, max_cache_size: int = 512) -> None:
+        self._cache = BoundedTTLCache[tuple[str, int, int], list[object]](
+            max_size=max_cache_size,
+            ttl_seconds=ttl_seconds,
+        )
 
     def pitching_appearances(self, player_id: int, season: int) -> list[PitchingAppearance]:
         key = ("pitching", player_id, season)
-        now = time.monotonic()
-        with self._lock:
-            cached = self._cache.get(key)
-            if cached and now - cached[0] < self._ttl_seconds:
-                return cached[1]  # type: ignore[return-value]
+        cached = self._cache.get(key)
+        if cached is not None:
+            return cached  # type: ignore[return-value]
 
         response = httpx.get(
             f"{KBO_BASE_URL}{DAILY_PATH}",
@@ -181,17 +180,14 @@ class KboGameLogClient:
         )
         response.raise_for_status()
         appearances = parse_pitching_appearances(response.content.decode("utf-8"), season)
-        with self._lock:
-            self._cache[key] = (now, appearances)
+        self._cache.set(key, appearances)
         return appearances
 
     def batting_appearances(self, player_id: int, season: int) -> list[BattingAppearance]:
         key = ("batting", player_id, season)
-        now = time.monotonic()
-        with self._lock:
-            cached = self._cache.get(key)
-            if cached and now - cached[0] < self._ttl_seconds:
-                return cached[1]  # type: ignore[return-value]
+        cached = self._cache.get(key)
+        if cached is not None:
+            return cached  # type: ignore[return-value]
 
         response = httpx.get(
             f"{KBO_BASE_URL}{HITTER_DAILY_PATH}",
@@ -202,8 +198,7 @@ class KboGameLogClient:
         )
         response.raise_for_status()
         appearances = parse_batting_appearances(response.content.decode("utf-8"), season)
-        with self._lock:
-            self._cache[key] = (now, appearances)
+        self._cache.set(key, appearances)
         return appearances
 
 

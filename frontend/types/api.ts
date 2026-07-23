@@ -115,6 +115,11 @@ export interface PlayerSeasons {
   pitching: PitchingSeason[];
 }
 
+export interface PlayerOverview {
+  player: PlayerDetail;
+  seasons: PlayerSeasons;
+}
+
 export interface PitchingAppearance {
   game_date: string;
   opponent: string;

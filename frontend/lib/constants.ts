@@ -1,0 +1,3 @@
+export const FIRST_KBO_SEASON = 1982;
+export const CURRENT_SEASON = 2026;
+export const LAST_COMPLETE_SEASON = CURRENT_SEASON - 1;

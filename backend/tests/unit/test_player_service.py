@@ -61,6 +61,18 @@ def test_player_seasons_include_team_defensive_efficiency() -> None:
     assert result.defensive_efficiencies == {(2026, 1): 0.691}
 
 
+def test_player_seasons_load_league_rows_for_all_seasons_once() -> None:
+    repository = FakePlayerRepository()
+    repository.batting_stats = [
+        SimpleNamespace(season=2025, team_id=1),
+        SimpleNamespace(season=2026, team_id=1),
+    ]
+
+    PlayerService(repository).get_player_seasons(68050, PlayerRole.BATTING)
+
+    assert repository.last_league_seasons == {2025, 2026}
+
+
 def test_league_benchmark_calculates_average_and_percentile() -> None:
     repository = FakePlayerRepository()
     repository.batting_stats = [

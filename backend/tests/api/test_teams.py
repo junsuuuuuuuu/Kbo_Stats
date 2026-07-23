@@ -75,3 +75,25 @@ async def test_team_standing_returns_latest_snapshot(client: AsyncClient) -> Non
     assert body["wins"] == 52
     assert body["recent_ten"] == "8승0무2패"
     assert body["team_name"] == "삼성"
+
+
+async def test_home_games_are_served_from_collected_snapshot(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/teams/games/latest", params={"season": 2026})
+
+    assert response.status_code == 200
+    assert response.json()["game_date"] == "2026-07-20"
+    assert response.json()["games"] == []
+
+
+async def test_missing_collected_game_day_returns_404(
+    client: AsyncClient, team_repository: FakeTeamRepository
+) -> None:
+    team_repository.game_day = None
+
+    response = await client.get(
+        "/api/v1/teams/games/day",
+        params={"season": 2026, "game_date": "2026-07-19"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "GAME_DAY_NOT_FOUND"

@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.constants import CURRENT_SEASON, FIRST_KBO_SEASON
 from app.core.exceptions import ApplicationError
 from app.schemas.common import ErrorBody, ErrorResponse
 
@@ -34,7 +35,7 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title=settings.app_name,
         version="0.1.0",
-        description="1982~2025 KBO 선수 기록 검색 및 AI 분석 API",
+        description=f"{FIRST_KBO_SEASON}~{CURRENT_SEASON} KBO 선수 기록 검색 및 AI 분석 API",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",

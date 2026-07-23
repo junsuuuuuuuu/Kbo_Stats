@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Query
 
 from app.api.dependencies import AnalyticsServiceDependency
+from app.core.constants import CURRENT_SEASON, FIRST_KBO_SEASON, LAST_COMPLETE_SEASON
 from app.schemas.analytics import (
     AnalyticsRole,
     DiscoveryResponse,
@@ -33,8 +34,12 @@ def predict_next_season(
     player_id: Annotated[int, Path(gt=0)],
     base_season: Annotated[
         int,
-        Query(ge=2025, le=2025, description="현재 배포 모델의 학습 cutoff 시즌"),
-    ] = 2025,
+        Query(
+            ge=LAST_COMPLETE_SEASON,
+            le=LAST_COMPLETE_SEASON,
+            description="현재 배포 모델의 학습 cutoff 시즌",
+        ),
+    ] = LAST_COMPLETE_SEASON,
 ) -> dict:
     return service.predict_next_season(role.value, player_id, base_season)
 
@@ -49,7 +54,9 @@ def similar_players(
     service: AnalyticsServiceDependency,
     role: AnalyticsRole,
     player_id: Annotated[int, Path(gt=0)],
-    season: Annotated[int | None, Query(ge=1982, le=2025)] = None,
+    season: Annotated[
+        int | None, Query(ge=FIRST_KBO_SEASON, le=LAST_COMPLETE_SEASON)
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=20)] = 10,
     same_position: bool = False,
 ) -> dict:
@@ -65,7 +72,9 @@ def similar_players(
 def discover_players(
     service: AnalyticsServiceDependency,
     role: AnalyticsRole,
-    season: Annotated[int, Query(ge=1982, le=2025)] = 2025,
+    season: Annotated[
+        int, Query(ge=FIRST_KBO_SEASON, le=LAST_COMPLETE_SEASON)
+    ] = LAST_COMPLETE_SEASON,
     team: Annotated[str | None, Query(max_length=30)] = None,
     max_age: Annotated[float | None, Query(ge=15, le=60)] = None,
     min_ops: Annotated[float | None, Query(ge=0, le=3)] = None,
@@ -138,7 +147,9 @@ def peak_prediction(
 def value_rankings(
     service: AnalyticsServiceDependency,
     role: AnalyticsRole,
-    season: Annotated[int, Query(ge=1982, le=2026)] = 2025,
+    season: Annotated[int, Query(ge=FIRST_KBO_SEASON, le=CURRENT_SEASON)] = (
+        LAST_COMPLETE_SEASON
+    ),
     team: Annotated[str | None, Query(max_length=30)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 30,
     value_type: RankingValueType = RankingValueType.OVERALL,

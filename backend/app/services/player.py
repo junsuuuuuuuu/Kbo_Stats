@@ -124,10 +124,11 @@ class PlayerService:
         defensive_efficiencies = self._repository.team_defensive_efficiencies(
             {(row.season, row.team_id) for row in batting}
         )
-        league_by_season = {
-            season: self._repository.list_league_batting_seasons(season)
-            for season in {row.season for row in batting}
-        }
+        batting_seasons = {row.season for row in batting}
+        league_by_season = {season: [] for season in batting_seasons}
+        if batting_seasons:
+            for row in self._repository.list_league_batting_seasons(batting_seasons):
+                league_by_season[row.season].append(row)
         batting_metrics = {
             id(row): calculate_batting_metrics(row, league_by_season[row.season])
             for row in batting
