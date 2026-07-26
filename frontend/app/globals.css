@@ -259,6 +259,10 @@ main { min-height: calc(100vh - 48px); }
 .game-result.draw { background: color-mix(in srgb, var(--muted) 15%, var(--surface)); color: var(--muted); }
 .appearance-source { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
 .appearance-source:hover { color: var(--accent); }
+.data-source-note { margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.7; }
+.data-source-note p { max-width: 780px; margin: 0 0 8px; }
+.data-source-note a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.data-source-note a:hover { color: var(--accent); }
 
 .team-grid { grid-template-columns: repeat(5, 1fr); gap: 16px; }
 .team-card { display: block; }

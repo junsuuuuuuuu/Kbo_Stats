@@ -1,8 +1,9 @@
 """구단별 최신 1군 등록 로스터 조회 Repository."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import Protocol
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session, joinedload
@@ -150,9 +151,13 @@ class SqlAlchemyTeamRepository:
         return self._session.scalar(statement)
 
     def get_latest_game_day(self, season: int) -> GameDaySnapshot | None:
+        today = datetime.now(ZoneInfo("Asia/Seoul")).date()
         statement = (
             select(GameDaySnapshot)
-            .where(GameDaySnapshot.season == season)
+            .where(
+                GameDaySnapshot.season == season,
+                GameDaySnapshot.game_date <= today,
+            )
             .order_by(GameDaySnapshot.game_date.desc())
             .limit(1)
         )

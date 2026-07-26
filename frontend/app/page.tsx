@@ -28,6 +28,16 @@ export default function HomePage() {
       </section>
       <LatestGameDayTable />
       <section className="section"><CurrentValueRanking /></section>
+      <footer className="data-source-note">
+        <p>
+          본 서비스는 KBO 공식 기록실의 공개 데이터를 기반으로 비상업적 분석 목적으로
+          제작되었습니다. 데이터는 수집 시점에 따라 실제 공식 기록과 차이가 있을 수
+          있습니다.
+        </p>
+        <a href="https://www.koreabaseball.com" rel="noreferrer" target="_blank">
+          출처: KBO 공식 홈페이지
+        </a>
+      </footer>
     </div>
   );
 }

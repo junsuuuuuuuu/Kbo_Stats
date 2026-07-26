@@ -7,8 +7,9 @@ import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from html.parser import HTMLParser
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -345,7 +346,8 @@ class KboTeamScheduleClient:
         if cached is not None:
             return cached
 
-        final_month = min(date.today().month, 10) if season == date.today().year else 10
+        today = datetime.now(ZoneInfo("Asia/Seoul")).date()
+        final_month = min(today.month, 10) if season == today.year else 10
         headers = {
             "User-Agent": USER_AGENT,
             "Accept-Language": "ko-KR,ko;q=0.9",
@@ -620,7 +622,17 @@ class KboTeamScheduleClient:
         if cached is not None:
             return cached
 
-        final_month = min(date.today().month, 10) if season == date.today().year else 10
+        today = datetime.now(ZoneInfo("Asia/Seoul")).date()
+        if season == today.year:
+            try:
+                today_result = self.game_day(today.isoformat(), season)
+                if today_result.games:
+                    self._latest_cache.set(season, today_result)
+                    return today_result
+            except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
+                logger.warning("kbo_today_game_day_failed date=%s error=%s", today, exception)
+
+        final_month = min(today.month, 10) if season == today.year else 10
         schedule_url = f"{KBO_BASE_URL}{SCHEDULE_PATH}"
         headers = {
             "User-Agent": USER_AGENT,
@@ -628,7 +640,7 @@ class KboTeamScheduleClient:
             "X-Requested-With": "XMLHttpRequest",
             "Referer": schedule_url,
         }
-        dated_game_ids: dict[str, set[str]] = {}
+        candidate_dates: set[str] = set()
         with httpx.Client(headers=headers, timeout=12.0, follow_redirects=True) as client:
             client.get(schedule_url).raise_for_status()
             for month in range(final_month, 2, -1):
@@ -649,14 +661,14 @@ class KboTeamScheduleClient:
                     for game in parse_team_schedule_rows(
                         rows, season=season, team_name=team_name
                     ):
-                        if game.game_id:
-                            dated_game_ids.setdefault(game.game_date, set()).add(game.game_id)
-                if dated_game_ids:
+                        if date.fromisoformat(game.game_date) <= today:
+                            candidate_dates.add(game.game_date)
+                if candidate_dates:
                     break
-        if not dated_game_ids:
+        if not candidate_dates:
             raise ValueError("완료된 KBO 경기를 찾을 수 없습니다.")
 
-        latest_date = max(dated_game_ids)
+        latest_date = max(candidate_dates)
         # Reuse the day collector so failed box-score requests retain the basic score.
         result = self.game_day(latest_date, season)
         self._latest_cache.set(season, result)

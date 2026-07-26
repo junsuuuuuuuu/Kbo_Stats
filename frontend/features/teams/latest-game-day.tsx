@@ -59,16 +59,14 @@ export function LatestGameDayTable() {
 
   return <section className="section latest-games-section">
     <SectionTitle
-      eyebrow="Latest KBO Results"
-      title="가장 최근 경기 결과"
-      description="가장 최근 종료된 경기일의 전체 결과와 구단별 당일 대표 타자·투수를 보여줍니다."
+      title="KBO 경기 일정"
     />
     {latest.isLoading ? <LoadingPanel label="최근 경기 결과를 불러오고 있습니다" />
       : latest.isError || !latest.data ? <ErrorPanel error={latest.error} />
       : <div className="panel latest-games-panel">
         <div className="latest-games-heading">
           <button aria-label="전날 경기" className="game-day-arrow" onClick={() => setSelectedDate(adjacentDate(latest.data.game_date, -1))} type="button"><ChevronLeft /></button>
-          <div><span className="eyebrow">GAME DAY</span><h2>{dateWithWeekday(latest.data.game_date)}</h2></div>
+          <div><span className="eyebrow">경기 일정</span><h2>{dateWithWeekday(latest.data.game_date)}</h2></div>
           <span className="muted">{latest.data.games.length ? `총 ${latest.data.games.length}경기` : "경기 없음"}</span>
           <button aria-label="다음날 경기" className="game-day-arrow" onClick={() => setSelectedDate(adjacentDate(latest.data.game_date, 1))} type="button"><ChevronRight /></button>
         </div>

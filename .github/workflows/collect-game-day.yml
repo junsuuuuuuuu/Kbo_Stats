@@ -1,15 +1,16 @@
 name: Collect KBO game day
 
 on:
-  schedule:
-    # 23:30 KST during the regular-season months.
-    - cron: "30 14 * 3-10 *"
   workflow_dispatch:
     inputs:
       game_date:
         description: "Optional game date (YYYY-MM-DD)"
         required: false
         type: string
+
+concurrency:
+  group: kbo-game-day-manual
+  cancel-in-progress: false
 
 jobs:
   collect:

@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/players", label: "선수 검색", icon: Search },
-  { href: "/teams", label: "구단 로스터", icon: UsersRound },
+  { href: "/teams", label: "구단별 정보", icon: UsersRound },
   { href: "/discover", label: "AI 스카우팅", icon: Sparkles },
   { href: "/rankings", label: "가치 랭킹", icon: Trophy },
   { href: "/compare", label: "선수 비교", icon: GitCompareArrows },
@@ -16,7 +16,7 @@ export function Header() {
     <header className="site-header">
       <Link href="/" className="brand">
         <span className="brand-mark"><Activity size={20} /></span>
-        <span>기록의 <strong>다음</strong></span>
+        <span><strong>KBO 분석</strong></span>
       </Link>
       <nav className="nav-links">
         {links.map(({ href, label, icon: Icon }) => (

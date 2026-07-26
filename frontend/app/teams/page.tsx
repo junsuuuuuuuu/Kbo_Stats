@@ -20,7 +20,7 @@ export default function TeamsPage() {
       <SectionTitle
         eyebrow={`${CURRENT_SEASON} Active Rosters`}
         title="구단별 1군 로스터"
-        description="KBO 공식 선수 등록 현황 기준입니다. 구단을 선택해 등록 선수를 확인하세요."
+        description="KBO 공식 선수 등록 현황."
       />
       {teams.isLoading ? (
         <LoadingPanel label="구단 로스터를 불러오고 있습니다" />

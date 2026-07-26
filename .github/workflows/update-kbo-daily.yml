@@ -1,0 +1,77 @@
+name: Update KBO daily data
+
+on:
+  schedule:
+    # 15:00 KST: light game-day snapshot plus active roster update.
+    - cron: "0 6 * 3-11 *"
+    # 23:30 KST: update standings/player stats only when completed games exist.
+    - cron: "30 14 * 3-11 *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Update mode"
+        required: true
+        default: "daily"
+        type: choice
+        options:
+          - daily
+          - roster
+          - game-day-only
+      game_date:
+        description: "Optional game date (YYYY-MM-DD)"
+        required: false
+        type: string
+      force:
+        description: "Force heavy update even if already processed"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: kbo-daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SCHEDULE_NAME: ${{ github.event.schedule }}
+      INPUT_MODE: ${{ inputs.mode }}
+      GAME_DATE: ${{ inputs.game_date }}
+      FORCE_UPDATE: ${{ inputs.force }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -e ./backend pandas
+
+      - name: Run migrations
+        working-directory: backend
+        run: python -m alembic upgrade head
+
+      - name: Run guarded daily update
+        working-directory: backend
+        run: |
+          ARGS=("--delay" "1.0" "--prefetch-days" "2")
+
+          if [ -n "$GAME_DATE" ]; then
+            ARGS+=("--date" "$GAME_DATE")
+          fi
+
+          if [ "$FORCE_UPDATE" = "true" ]; then
+            ARGS+=("--force")
+          fi
+
+          if [ "$SCHEDULE_NAME" = "0 6 * 3-11 *" ] || [ "$INPUT_MODE" = "roster" ]; then
+            ARGS+=("--include-rosters" "--game-day-only")
+          elif [ "$INPUT_MODE" = "game-day-only" ]; then
+            ARGS+=("--game-day-only")
+          fi
+
+          python -m scripts.daily_kbo_update "${ARGS[@]}"

@@ -1,14 +1,15 @@
 """구단 목록과 1군 등록 로스터 REST API."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated
+from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import APIRouter, Path, Query
 
-from app.api.dependencies import TeamServiceDependency
+from app.api.dependencies import DatabaseSession, TeamServiceDependency
 from app.core.constants import CURRENT_SEASON, FIRST_KBO_SEASON
-from app.core.exceptions import UpstreamDataError
+from app.core.exceptions import GameDayNotFoundError, UpstreamDataError
 from app.schemas.common import ErrorResponse
 from app.schemas.team import (
     LatestGameDayResponse,
@@ -22,6 +23,7 @@ from app.schemas.team import (
 )
 from app.services.kbo_game_log import KBO_BASE_URL
 from app.services.kbo_team_schedule import SCHEDULE_PATH, kbo_team_schedule_client
+from scripts.collect_game_day import save_snapshot
 
 router = APIRouter(prefix="/teams", tags=["Teams"])
 
@@ -73,9 +75,28 @@ def get_team_standing(
 )
 def get_latest_games(
     service: TeamServiceDependency,
+    session: DatabaseSession,
     season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> LatestGameDayResponse:
-    return LatestGameDayResponse.model_validate(service.get_latest_game_day(season).payload)
+    try:
+        snapshot = service.get_latest_game_day(season)
+    except GameDayNotFoundError:
+        snapshot = None
+
+    today = datetime.now(ZoneInfo("Asia/Seoul")).date()
+    if snapshot is not None and snapshot.game_date >= today:
+        return LatestGameDayResponse.model_validate(snapshot.payload)
+
+    try:
+        collected = kbo_team_schedule_client.latest_game_day(season)
+    except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
+        if snapshot is not None:
+            return LatestGameDayResponse.model_validate(snapshot.payload)
+        raise UpstreamDataError() from exception
+
+    response = LatestGameDayResponse.model_validate(collected, from_attributes=True)
+    save_snapshot(session, response, season)
+    return response
 
 
 @router.get(
@@ -85,10 +106,25 @@ def get_latest_games(
 )
 def get_games_by_day(
     service: TeamServiceDependency,
+    session: DatabaseSession,
     game_date: Annotated[date, Query()],
     season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> LatestGameDayResponse:
-    return LatestGameDayResponse.model_validate(service.get_game_day(game_date, season).payload)
+    try:
+        return LatestGameDayResponse.model_validate(
+            service.get_game_day(game_date, season).payload
+        )
+    except GameDayNotFoundError:
+        pass
+
+    try:
+        collected = kbo_team_schedule_client.game_day(game_date.isoformat(), season)
+    except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
+        raise UpstreamDataError() from exception
+
+    response = LatestGameDayResponse.model_validate(collected, from_attributes=True)
+    save_snapshot(session, response, season)
+    return response
 
 
 @router.get(
