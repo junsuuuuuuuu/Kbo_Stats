@@ -85,6 +85,7 @@ class BattingAppearance:
     strikeouts: int
     grounded_into_double_play: int
     season_average: float
+    result: str | None = None
 
 
 def parse_pitching_appearances(page: str, season: int) -> list[PitchingAppearance]:
@@ -118,6 +119,29 @@ def parse_pitching_appearances(page: str, season: int) -> list[PitchingAppearanc
             )
         )
     return appearances
+
+
+def calculate_batting_season_averages(
+    appearances: list[BattingAppearance],
+) -> list[BattingAppearance]:
+    """일자별 타격 기록을 누적해 각 경기 시점의 시즌 AVG를 계산한다."""
+
+    appearances.sort(key=lambda item: item.game_date)
+    total_at_bats = 0
+    total_hits = 0
+    calculated: list[BattingAppearance] = []
+    for appearance in appearances:
+        total_at_bats += appearance.at_bats
+        total_hits += appearance.hits
+        calculated.append(
+            replace(
+                appearance,
+                season_average=(
+                    round(total_hits / total_at_bats, 3) if total_at_bats else 0.0
+                ),
+            )
+        )
+    return calculated
 
 
 def parse_batting_appearances(page: str, season: int) -> list[BattingAppearance]:
@@ -154,24 +178,7 @@ def parse_batting_appearances(page: str, season: int) -> list[BattingAppearance]
             )
         )
     # KBO 응답의 시즌 AVG는 시즌 통계 snapshot과 갱신 시점이 다를 수 있다.
-    # 일자별 기록에 포함된 누적 타수·안타로 직접 계산해 최신 경기 로그와
-    # 동일한 기준일의 시즌 AVG를 제공한다.
-    appearances.sort(key=lambda item: item.game_date)
-    total_at_bats = 0
-    total_hits = 0
-    calculated: list[BattingAppearance] = []
-    for appearance in appearances:
-        total_at_bats += appearance.at_bats
-        total_hits += appearance.hits
-        calculated.append(
-            replace(
-                appearance,
-                season_average=(
-                    round(total_hits / total_at_bats, 3) if total_at_bats else 0.0
-                ),
-            )
-        )
-    return calculated
+    return calculate_batting_season_averages(appearances)
 
 
 class KboGameLogClient:

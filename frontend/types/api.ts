@@ -164,6 +164,7 @@ export interface BattingAppearance {
   strikeouts: number;
   grounded_into_double_play: number;
   season_average: number;
+  result: "W" | "L" | "D" | null;
 }
 
 export interface BattingAppearances {

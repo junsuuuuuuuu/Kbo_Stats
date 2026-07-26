@@ -1,6 +1,7 @@
 """선수 검색, 상세 및 시즌 기록 REST API."""
 
 import logging
+from dataclasses import replace
 from typing import Annotated
 
 import httpx
@@ -30,8 +31,11 @@ from app.services.kbo_game_log import (
     DAILY_PATH,
     HITTER_DAILY_PATH,
     KBO_BASE_URL,
+    BattingAppearance,
+    calculate_batting_season_averages,
     kbo_game_log_client,
 )
+from app.services.kbo_team_schedule import TEAM_CODES_BY_NAME, kbo_team_schedule_client
 
 router = APIRouter(prefix="/players", tags=["Players"])
 logger = logging.getLogger("kbo_api")
@@ -198,6 +202,57 @@ def get_batting_appearances(
     except (httpx.HTTPError, UnicodeError, ValueError) as exception:
         logger.warning("kbo_batting_log_failed player_id=%s error=%s", player_id, exception)
         raise UpstreamDataError() from exception
+
+    # 일자별 선수 기록은 출장 경기만 반환하므로, 해당 시즌의 구단 일정과
+    # 합쳐 출장하지 않은 팀 경기에도 0 기록을 표시한다.
+    team_codes = {
+        TEAM_CODES_BY_NAME[row.team.team_name]
+        for row in service.get_player_seasons(player_id, PlayerRole.BATTING).batting
+        if row.season == season and row.team.team_name in TEAM_CODES_BY_NAME
+    }
+    team_games = {}
+    for team_code in team_codes:
+        try:
+            for game in kbo_team_schedule_client.results(team_code, season):
+                team_games.setdefault(game.game_date, game)
+        except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
+            logger.warning(
+                "kbo_team_schedule_for_batting_failed player_id=%s team=%s error=%s",
+                player_id,
+                team_code,
+                exception,
+            )
+
+    appearances_by_date = {item.game_date: item for item in items}
+    merged: list[BattingAppearance] = []
+    for game_date, game in sorted(team_games.items()):
+        item = appearances_by_date.get(game_date)
+        if item is None:
+            item = BattingAppearance(
+                game_date=game_date,
+                opponent=game.opponent,
+                game_average=None,
+                plate_appearances=0,
+                at_bats=0,
+                runs=0,
+                hits=0,
+                doubles=0,
+                triples=0,
+                home_runs=0,
+                runs_batted_in=0,
+                stolen_bases=0,
+                caught_stealing=0,
+                walks=0,
+                hit_by_pitch=0,
+                strikeouts=0,
+                grounded_into_double_play=0,
+                season_average=0.0,
+            )
+        merged.append(replace(item, result=game.result))
+
+    known_dates = {item.game_date for item in merged}
+    merged.extend(item for item in items if item.game_date not in known_dates)
+    items = calculate_batting_season_averages(merged)
     return BattingAppearancesResponse(
         player_id=player_id,
         season=season,

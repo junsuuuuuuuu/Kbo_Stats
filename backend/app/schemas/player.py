@@ -345,6 +345,7 @@ class BattingAppearanceResponse(BaseModel):
     strikeouts: int
     grounded_into_double_play: int
     season_average: float
+    result: str | None
 
 
 class BattingAppearancesResponse(BaseModel):

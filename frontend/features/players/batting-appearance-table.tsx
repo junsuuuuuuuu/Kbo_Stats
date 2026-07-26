@@ -12,6 +12,7 @@ type Props = {
 };
 
 const average = (value: number | null) => value == null ? "-" : value.toFixed(3);
+const resultClass = (result: string | null) => result === "W" ? "win" : result === "L" ? "loss" : result === "D" ? "draw" : "neutral";
 
 export function BattingAppearanceTable({ data, error, isError, isLoading }: Props) {
   return (
@@ -38,7 +39,7 @@ export function BattingAppearanceTable({ data, error, isError, isLoading }: Prop
           <table className="data-table appearance-table batting-game-table">
             <thead>
               <tr>
-                <th>날짜</th><th>상대</th><th>타수</th><th>타석</th><th>안타</th>
+                <th>날짜</th><th>상대</th><th>결과</th><th>타수</th><th>타석</th><th>안타</th>
                 <th>2루타</th><th>3루타</th><th>홈런</th><th>득점</th><th>타점</th>
                 <th>도루</th><th>도실</th><th>볼넷</th><th>사구</th><th>삼진</th>
                 <th>병살</th><th>경기 AVG</th><th>시즌 AVG</th>
@@ -46,9 +47,11 @@ export function BattingAppearanceTable({ data, error, isError, isLoading }: Prop
             </thead>
             <tbody>
               {[...data.items].reverse().map((item) => (
-                <tr key={`${item.game_date}-${item.opponent}`}>
+                <tr className={item.at_bats === 0 && item.plate_appearances === 0 ? "no-appearance" : undefined} key={`${item.game_date}-${item.opponent}`}>
                   <td className="appearance-date">{item.game_date.slice(5).replace("-", ".")}</td>
-                  <td><b>{item.opponent}</b></td><td>{item.at_bats}</td><td>{item.plate_appearances}</td>
+                  <td><b>{item.opponent}</b></td>
+                  <td><span className={`game-result ${resultClass(item.result)}`}>{item.result ?? "-"}</span></td>
+                  <td>{item.at_bats}</td><td>{item.plate_appearances}</td>
                   <td className="primary-stat">{item.hits}</td><td>{item.doubles}</td><td>{item.triples}</td>
                   <td className={item.home_runs ? "home-run" : ""}>{item.home_runs}</td>
                   <td>{item.runs}</td><td>{item.runs_batted_in}</td><td>{item.stolen_bases}</td>
