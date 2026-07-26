@@ -5,7 +5,12 @@ from datetime import date
 from app.core.exceptions import GameDayNotFoundError, TeamRosterNotFoundError
 from app.models.game_day import GameDaySnapshot
 from app.models.standing import TeamStanding
-from app.repositories.team import TeamRepository, TeamRosterSnapshot, TeamRosterSummary
+from app.repositories.team import (
+    TeamRepository,
+    TeamRosterChanges,
+    TeamRosterSnapshot,
+    TeamRosterSummary,
+)
 
 
 class TeamService:
@@ -25,6 +30,13 @@ class TeamService:
         if snapshot is None:
             raise TeamRosterNotFoundError(normalized_code, season)
         return snapshot
+
+    def get_roster_changes(self, team_code: str, season: int) -> TeamRosterChanges:
+        normalized_code = team_code.strip().upper()
+        changes = self._repository.get_roster_changes(normalized_code, season)
+        if changes is None:
+            raise TeamRosterNotFoundError(normalized_code, season)
+        return changes
 
     def get_standing(self, team_code: str, season: int) -> TeamStanding | None:
         """구단의 최신 전적을 반환한다. 시즌 개막 전에는 None일 수 있다."""

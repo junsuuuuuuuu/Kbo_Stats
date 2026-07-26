@@ -209,6 +209,23 @@ export interface TeamRoster {
   members: RosterMember[];
 }
 
+export interface RosterChangeMember {
+  player_id: number;
+  player_name: string;
+  uniform_number: string;
+  position: "P" | "C" | "IF" | "OF";
+  position_label: string;
+}
+
+export interface TeamRosterChanges {
+  season: number;
+  team_code: string;
+  as_of_date: string;
+  previous_as_of_date: string | null;
+  registered: RosterChangeMember[];
+  removed: RosterChangeMember[];
+}
+
 export interface TeamStanding {
   season: number;
   as_of_date: string;

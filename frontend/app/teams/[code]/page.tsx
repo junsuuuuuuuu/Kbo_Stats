@@ -45,6 +45,11 @@ export default function TeamRosterPage() {
     queryFn: () => api.teamGames(teamCode, CURRENT_SEASON),
     enabled: teamCode.length === 2,
   });
+  const rosterChanges = useQuery({
+    queryKey: ["team-roster-changes", teamCode, CURRENT_SEASON],
+    queryFn: () => api.teamRosterChanges(teamCode, CURRENT_SEASON),
+    enabled: teamCode.length === 2,
+  });
   const teamName = roster.data?.team.team_name;
   const battingLeaders = useQuery({
     queryKey: ["team-leaders", "batting", teamName, CURRENT_SEASON],
@@ -122,6 +127,49 @@ export default function TeamRosterPage() {
           ].map(([label, count]) => <div key={label}><span>{label}</span><i style={{ height: `${Math.max(8, Number(count) / Math.max(members.length, 1) * 150)}px` }} /><strong>{count}명</strong></div>)}
         </div>
         <div className="roster-summary"><span>투수 <b>{team?.pitcher_count ?? 0}</b></span><span>야수 <b>{team?.hitter_count ?? 0}</b></span><span>기준일 <b>{team?.as_of_date ?? "—"}</b></span></div>
+      </section>
+
+      <section className="panel roster-change-panel">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">ROSTER UPDATE</span>
+            <h2>최근 등록/말소</h2>
+          </div>
+          <span className="muted">
+            {rosterChanges.data ? `${rosterChanges.data.as_of_date} 기준` : "확인 중"}
+          </span>
+        </div>
+        {rosterChanges.isLoading ? <LoadingPanel label="로스터 변경 내역을 확인하고 있습니다" />
+          : rosterChanges.isError || !rosterChanges.data ? <ErrorPanel error={rosterChanges.error} />
+          : rosterChanges.data.registered.length + rosterChanges.data.removed.length === 0
+            ? <div className="roster-change-empty">
+              <strong>변동 없음</strong>
+              <span>
+                {rosterChanges.data.previous_as_of_date
+                  ? `${rosterChanges.data.previous_as_of_date} 대비 등록/말소가 없습니다.`
+                  : "비교할 이전 로스터 스냅샷이 없습니다."}
+              </span>
+            </div>
+            : <div className="roster-change-grid">
+              <div>
+                <h3>등록</h3>
+                {rosterChanges.data.registered.length ? rosterChanges.data.registered.map((member) => (
+                  <Link className="roster-change-item registered" href={`/players/${member.player_id}`} key={member.player_id}>
+                    <b>{member.player_name}</b>
+                    <span>{member.uniform_number}번 · {member.position_label}</span>
+                  </Link>
+                )) : <p className="muted">등록 선수 없음</p>}
+              </div>
+              <div>
+                <h3>말소</h3>
+                {rosterChanges.data.removed.length ? rosterChanges.data.removed.map((member) => (
+                  <Link className="roster-change-item removed" href={`/players/${member.player_id}`} key={member.player_id}>
+                    <b>{member.player_name}</b>
+                    <span>{member.uniform_number}번 · {member.position_label}</span>
+                  </Link>
+                )) : <p className="muted">말소 선수 없음</p>}
+              </div>
+            </div>}
       </section>
 
       <section className="panel section roster-panel">

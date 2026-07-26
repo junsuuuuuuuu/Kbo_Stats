@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.models.roster import TeamRoster
 from app.models.standing import TeamStanding
-from app.repositories.team import TeamRosterSnapshot, TeamRosterSummary
+from app.repositories.team import TeamRosterChanges, TeamRosterSnapshot, TeamRosterSummary
 
 POSITION_LABELS = {"P": "투수", "C": "포수", "IF": "내야수", "OF": "외야수"}
 
@@ -81,6 +81,44 @@ class TeamRosterResponse(BaseModel):
         return cls(
             team=TeamSummaryResponse.from_result(result.summary),
             members=[RosterMemberResponse.from_entity(member) for member in result.members],
+        )
+
+
+class RosterChangeMemberResponse(BaseModel):
+    player_id: int
+    player_name: str
+    uniform_number: str
+    position: str
+    position_label: str
+
+    @classmethod
+    def from_entity(cls, member: TeamRoster) -> "RosterChangeMemberResponse":
+        return cls(
+            player_id=member.player_id,
+            player_name=member.player.player_name,
+            uniform_number=member.uniform_number,
+            position=member.position_code,
+            position_label=POSITION_LABELS[member.position_code],
+        )
+
+
+class TeamRosterChangesResponse(BaseModel):
+    season: int
+    team_code: str
+    as_of_date: date
+    previous_as_of_date: date | None
+    registered: list[RosterChangeMemberResponse]
+    removed: list[RosterChangeMemberResponse]
+
+    @classmethod
+    def from_result(cls, result: TeamRosterChanges) -> "TeamRosterChangesResponse":
+        return cls(
+            season=result.season,
+            team_code=result.team_code,
+            as_of_date=result.as_of_date,
+            previous_as_of_date=result.previous_as_of_date,
+            registered=[RosterChangeMemberResponse.from_entity(member) for member in result.registered],
+            removed=[RosterChangeMemberResponse.from_entity(member) for member in result.removed],
         )
 
 

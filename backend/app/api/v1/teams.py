@@ -16,6 +16,7 @@ from app.schemas.team import (
     TeamGameDetailResponse,
     TeamGameResultResponse,
     TeamGameResultsResponse,
+    TeamRosterChangesResponse,
     TeamListResponse,
     TeamRosterResponse,
     TeamStandingResponse,
@@ -52,6 +53,20 @@ def get_team_roster(
     season: Annotated[int, Query(ge=FIRST_KBO_SEASON, le=2200)] = CURRENT_SEASON,
 ) -> TeamRosterResponse:
     return TeamRosterResponse.from_result(service.get_roster(team_code, season))
+
+
+@router.get(
+    "/{team_code}/roster/changes",
+    response_model=TeamRosterChangesResponse,
+    responses={404: {"model": ErrorResponse, "description": "援щ떒 濡쒖뒪???놁쓬"}},
+    summary="援щ떒 1援??깅줉 濡쒖뒪??蹂寃쎈텇 議고쉶",
+)
+def get_team_roster_changes(
+    service: TeamServiceDependency,
+    team_code: Annotated[str, Path(min_length=2, max_length=2)],
+    season: Annotated[int, Query(ge=FIRST_KBO_SEASON, le=2200)] = CURRENT_SEASON,
+) -> TeamRosterChangesResponse:
+    return TeamRosterChangesResponse.from_result(service.get_roster_changes(team_code, season))
 
 
 @router.get(

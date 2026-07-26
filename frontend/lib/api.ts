@@ -19,6 +19,7 @@ import type {
   TeamGameResults,
   TeamGameDetail,
   TeamRoster,
+  TeamRosterChanges,
   TeamStanding,
 } from "@/types/api";
 import { CURRENT_SEASON, LAST_COMPLETE_SEASON } from "@/lib/constants";
@@ -68,6 +69,8 @@ export const api = {
   teams: (season = CURRENT_SEASON) => request<TeamList>("/teams", { season }),
   teamRoster: (teamCode: string, season = CURRENT_SEASON) =>
     request<TeamRoster>(`/teams/${teamCode}/roster`, { season }),
+  teamRosterChanges: (teamCode: string, season = CURRENT_SEASON) =>
+    request<TeamRosterChanges>(`/teams/${teamCode}/roster/changes`, { season }),
   teamStanding: (teamCode: string, season = CURRENT_SEASON) =>
     request<TeamStanding | null>(`/teams/${teamCode}/standing`, { season }),
   teamGames: (teamCode: string, season = CURRENT_SEASON) =>

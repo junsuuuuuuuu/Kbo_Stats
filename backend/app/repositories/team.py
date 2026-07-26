@@ -32,10 +32,22 @@ class TeamRosterSnapshot:
     members: list[TeamRoster]
 
 
+@dataclass(frozen=True, slots=True)
+class TeamRosterChanges:
+    season: int
+    team_code: str
+    as_of_date: date
+    previous_as_of_date: date | None
+    registered: list[TeamRoster]
+    removed: list[TeamRoster]
+
+
 class TeamRepository(Protocol):
     def list_latest_rosters(self, season: int) -> list[TeamRosterSummary]: ...
 
     def get_latest_roster(self, team_code: str, season: int) -> TeamRosterSnapshot | None: ...
+
+    def get_roster_changes(self, team_code: str, season: int) -> TeamRosterChanges | None: ...
 
     def get_latest_standing(self, team_code: str, season: int) -> TeamStanding | None: ...
 
@@ -135,6 +147,75 @@ class SqlAlchemyTeamRepository:
         )
         members = list(self._session.scalars(statement).unique().all())
         return TeamRosterSnapshot(summary=summary, members=members)
+
+    def _roster_members_for_date(
+        self,
+        team_code: str,
+        season: int,
+        as_of_date: date,
+    ) -> list[TeamRoster]:
+        statement = (
+            select(TeamRoster)
+            .options(joinedload(TeamRoster.player), joinedload(TeamRoster.team))
+            .where(
+                TeamRoster.season == season,
+                TeamRoster.as_of_date == as_of_date,
+                TeamRoster.team_code == team_code,
+                TeamRoster.is_active.is_(True),
+            )
+            .order_by(TeamRoster.player_id)
+        )
+        return list(self._session.scalars(statement).unique().all())
+
+    def get_roster_changes(self, team_code: str, season: int) -> TeamRosterChanges | None:
+        latest_date = self._session.scalar(
+            select(func.max(TeamRoster.as_of_date)).where(
+                TeamRoster.season == season,
+                TeamRoster.team_code == team_code,
+                TeamRoster.is_active.is_(True),
+            )
+        )
+        if latest_date is None:
+            return None
+
+        previous_date = self._session.scalar(
+            select(func.max(TeamRoster.as_of_date)).where(
+                TeamRoster.season == season,
+                TeamRoster.team_code == team_code,
+                TeamRoster.as_of_date < latest_date,
+                TeamRoster.is_active.is_(True),
+            )
+        )
+        if previous_date is None:
+            return TeamRosterChanges(
+                season=season,
+                team_code=team_code,
+                as_of_date=latest_date,
+                previous_as_of_date=None,
+                registered=[],
+                removed=[],
+            )
+
+        latest_members = self._roster_members_for_date(team_code, season, latest_date)
+        previous_members = self._roster_members_for_date(team_code, season, previous_date)
+        latest_by_player = {member.player_id: member for member in latest_members}
+        previous_by_player = {member.player_id: member for member in previous_members}
+        registered = [
+            latest_by_player[player_id]
+            for player_id in sorted(latest_by_player.keys() - previous_by_player.keys())
+        ]
+        removed = [
+            previous_by_player[player_id]
+            for player_id in sorted(previous_by_player.keys() - latest_by_player.keys())
+        ]
+        return TeamRosterChanges(
+            season=season,
+            team_code=team_code,
+            as_of_date=latest_date,
+            previous_as_of_date=previous_date,
+            registered=registered,
+            removed=removed,
+        )
 
     def get_latest_standing(self, team_code: str, season: int) -> TeamStanding | None:
         """해당 시즌 구단의 가장 최근 전적 스냅샷을 반환한다."""
