@@ -2,12 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { Data } from "plotly.js";
-import { BrainCircuit, ChartNoAxesCombined, Sparkles, Target } from "lucide-react";
-import Link from "next/link";
+import { BrainCircuit, ChartNoAxesCombined, Target } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { GrowthChart, LineChart, PcaChart } from "@/components/charts";
+import { GrowthChart, LineChart } from "@/components/charts";
 import { ErrorPanel, LoadingPanel, MetricCard } from "@/components/ui";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CareerRecordDashboard } from "@/features/players/career-record-dashboard";
@@ -54,7 +53,6 @@ export default function PlayerDetailPage() {
   const prediction = useQuery({ queryKey: ["prediction", role, playerId], queryFn: () => api.prediction(role, playerId), enabled: analysisSeason === LAST_COMPLETE_SEASON });
   const growth = useQuery({ queryKey: ["growth", role, playerId], queryFn: () => api.growth(role, playerId, growthMetrics), enabled: rows.length > 0 });
   const peak = useQuery({ queryKey: ["peak", role, playerId], queryFn: () => api.peak(role, playerId), enabled: rows.length >= 3 });
-  const similar = useQuery({ queryKey: ["similar", role, playerId, analysisSeason], queryFn: () => api.similar(role, playerId, analysisSeason), enabled: Boolean(analysisSeason) });
   const benchmarks = useQuery({ queryKey: ["benchmarks", role, playerId, latestSeason], queryFn: () => api.benchmarks(playerId, role, latestSeason!), enabled: Boolean(latestSeason) });
   const appearances = useQuery({
     queryKey: ["pitching-appearances", playerId, CURRENT_SEASON],
@@ -82,6 +80,8 @@ export default function PlayerDetailPage() {
     line: { width: 3 },
   }));
   const latestMetrics = role === "batting" ? ["batting_average", "on_base_plus_slugging", "home_runs", "runs_batted_in"] : ["earned_run_average", "innings_pitched_outs", "strikeouts", "walks_allowed"];
+  const liveBattingAverage = battingAppearances.data?.items.at(-1)?.season_average;
+  const liveBattingAverageDate = battingAppearances.data?.items.at(-1)?.game_date;
   const favoritePlayer = player.data ? {
     player_id: player.data.player_id,
     player_name: player.data.player_name,
@@ -93,7 +93,7 @@ export default function PlayerDetailPage() {
     <div className="page player-detail-page">
       <header className="player-heading">
         <div>
-          <span className="eyebrow">PLAYER INTELLIGENCE · {latestSeason ?? "—"}{latest?.is_partial ? " 진행 중" : ""}</span>
+          <span className="eyebrow">{latestSeason ?? "—"}{latest?.is_partial ? "시즌 진행 중" : ""}</span>
           <h1>{player.data?.player_name}</h1>
           <p className="muted">{player.data?.birth_date} · {latest?.team ?? "팀 정보 없음"}</p>
         </div>
@@ -122,8 +122,12 @@ export default function PlayerDetailPage() {
       <main className="player-detail-main">
       <section className={`metric-grid player-metric-grid ${role}`}>
         {latestMetrics.map((metric) => {
-          const value = latest?.[metric];
-          const snapshotHint = latest?.is_partial && latest.as_of_date ? ` · ${latest.as_of_date} 기준` : "";
+          const value = metric === "batting_average" && liveBattingAverage != null
+            ? liveBattingAverage
+            : latest?.[metric];
+          const snapshotHint = metric === "batting_average" && liveBattingAverageDate
+            ? ` · ${liveBattingAverageDate} 경기 기록 기준`
+            : latest?.is_partial && latest.as_of_date ? ` · ${latest.as_of_date} 기준` : "";
           return <MetricCard key={metric} label={labels[metric]} value={formatMetric(metric, value == null ? null : Number(value))} hint={`${latestSeason ?? ""} 시즌${snapshotHint}`} />;
         })}
       </section>
@@ -202,26 +206,7 @@ export default function PlayerDetailPage() {
           )}
       </section>
 
-      {similar.data && <section className="section panel"><div className="panel-header"><h2>플레이 스타일 PCA 맵</h2><span className="muted">기준 선수와 추천 TOP10</span></div><PcaChart data={similar.data} /></section>}
       </main>
-
-      <aside className="panel similar-player-rail" aria-label="유사 선수 TOP10">
-        <div className="panel-header"><div><span className="eyebrow">SIMILAR PLAYERS</span><h2>유사 선수 TOP10</h2></div><Sparkles size={19} /></div>
-        {similar.isLoading ? <LoadingPanel /> : similar.isError ? <ErrorPanel error={similar.error} /> : (
-          <ol className="similar-player-list">
-            {similar.data?.recommendations.map((item) => (
-              <li key={item.player_id}>
-                <span className="rank">{item.rank}</span>
-                <Link href={`/players/${item.player_id}?role=${role}`}>
-                  <strong>{item.player_name}</strong>
-                  <small>{item.team} · {item.reasons[0]}</small>
-                </Link>
-                <b>{(item.similarity_score * 100).toFixed(0)}</b>
-              </li>
-            ))}
-          </ol>
-        )}
-      </aside>
       </div>
       )}
     </div>

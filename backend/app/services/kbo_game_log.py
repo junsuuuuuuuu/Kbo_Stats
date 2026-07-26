@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 
 import httpx
@@ -153,7 +153,25 @@ def parse_batting_appearances(page: str, season: int) -> list[BattingAppearance]
                 season_average=float(cells[17]),
             )
         )
-    return appearances
+    # KBO 응답의 시즌 AVG는 시즌 통계 snapshot과 갱신 시점이 다를 수 있다.
+    # 일자별 기록에 포함된 누적 타수·안타로 직접 계산해 최신 경기 로그와
+    # 동일한 기준일의 시즌 AVG를 제공한다.
+    appearances.sort(key=lambda item: item.game_date)
+    total_at_bats = 0
+    total_hits = 0
+    calculated: list[BattingAppearance] = []
+    for appearance in appearances:
+        total_at_bats += appearance.at_bats
+        total_hits += appearance.hits
+        calculated.append(
+            replace(
+                appearance,
+                season_average=(
+                    round(total_hits / total_at_bats, 3) if total_at_bats else 0.0
+                ),
+            )
+        )
+    return calculated
 
 
 class KboGameLogClient:

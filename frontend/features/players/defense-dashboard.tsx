@@ -16,7 +16,6 @@ export function DefenseDashboard({ rows }: { rows: BattingSeason[] }) {
       <div className="section-title defense-title">
         <span>DEFENSIVE METRICS</span>
         <h2>수비 지표</h2>
-        <p>개인 실책과 소속 팀의 인플레이 타구 처리 효율을 분리해서 보여줍니다.</p>
       </div>
 
       <div className="metric-grid defense-metric-grid">

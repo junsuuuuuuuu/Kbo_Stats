@@ -18,7 +18,6 @@ export function CareerTimeline({ role, rows }: { role: AnalyticsRole; rows: Care
     <section className="section timeline-section">
       <div className="panel-header timeline-heading">
         <div><span className="eyebrow">CAREER MOMENTS</span><h2>커리어 타임라인</h2></div>
-        <p className="muted">데뷔부터 이적, 커리어 하이와 최근 시즌까지</p>
       </div>
       <div className="career-timeline">
         {rows.map((row, index) => {

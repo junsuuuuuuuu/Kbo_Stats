@@ -51,6 +51,8 @@ def test_parse_batting_appearances_includes_zero_plate_appearance_games() -> Non
 
     assert len(rows) == 2
     assert rows[0].hits == 2
+    assert rows[0].season_average == 0.4
     assert rows[1].game_date == "2026-05-12"
     assert rows[1].game_average is None
     assert rows[1].plate_appearances == 0
+    assert rows[1].season_average == 0.4

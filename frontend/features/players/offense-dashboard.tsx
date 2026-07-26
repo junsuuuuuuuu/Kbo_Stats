@@ -30,7 +30,6 @@ export function OffenseDashboard({ rows }: { rows: BattingSeason[] }) {
       <div className="section-title defense-title">
         <span>ADVANCED BATTING METRICS</span>
         <h2>공격·주루 지표</h2>
-        <p>기존 KBO 원시 기록과 같은 시즌 리그 기준값으로 계산했습니다.</p>
       </div>
       <div className="metric-grid advanced-metric-grid">
         {metrics.map(([key, label, description]) => (
@@ -38,7 +37,7 @@ export function OffenseDashboard({ rows }: { rows: BattingSeason[] }) {
         ))}
       </div>
       <section className="section panel">
-        <div className="panel-header"><h2>시즌별 세이버 지표</h2><span className="muted">가로로 밀어 전체 지표 확인</span></div>
+        <div className="panel-header"><h2>통산 기록</h2><span className="muted">가로로 밀어 전체 지표 확인</span></div>
         <div className="table-wrap">
           <table className="data-table advanced-table">
             <thead><tr><th>시즌</th><th>팀</th>{metrics.map(([, label]) => <th key={label}>{label}</th>)}</tr></thead>
