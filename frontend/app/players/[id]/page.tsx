@@ -88,6 +88,9 @@ export default function PlayerDetailPage() {
     birth_date: player.data.birth_date,
     roles: [...new Set(player.data.profiles.map((profile) => profile.role))] as PlayerRole[],
   } : null;
+  const koreanAge = player.data
+    ? new Date().getFullYear() - Number(player.data.birth_date.slice(0, 4)) + 1
+    : null;
 
   return (
     <div className="page player-detail-page">
@@ -95,7 +98,7 @@ export default function PlayerDetailPage() {
         <div>
           <span className="eyebrow">{latestSeason ?? "—"}{latest?.is_partial ? "시즌 진행 중" : ""}</span>
           <h1>{player.data?.player_name}</h1>
-          <p className="muted">{player.data?.birth_date} · {latest?.team ?? "팀 정보 없음"}</p>
+          <p className="muted">{player.data?.birth_date} · {koreanAge}세 · {latest?.team ?? "팀 정보 없음"}</p>
         </div>
         <div className="player-heading-actions">
           {favoritePlayer && <FavoriteButton player={favoritePlayer} />}
