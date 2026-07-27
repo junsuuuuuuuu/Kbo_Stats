@@ -75,8 +75,8 @@ export function LatestGameDayTable() {
             <thead><tr><th>시간</th><th>경기 결과</th><th>구장</th><th>원정팀 대표 선수</th><th>홈팀 대표 선수</th></tr></thead>
             <tbody>{latest.data.games.map((game) => <tr key={game.game_id}>
               <td>{game.start_time}</td><td><Matchup game={game} /></td><td>{game.stadium}</td>
-              <td>{game.away_hitter && game.away_pitcher ? <Ace hitter={game.away_hitter} pitcher={game.away_pitcher} /> : <span className="daily-pending">경기 취소</span>}</td>
-              <td>{game.home_hitter && game.home_pitcher ? <Ace hitter={game.home_hitter} pitcher={game.home_pitcher} /> : <span className="daily-pending">경기 취소</span>}</td>
+              <td>{game.away_hitter && game.away_pitcher ? <Ace hitter={game.away_hitter} pitcher={game.away_pitcher} /> : <span className="daily-pending">{game.status === "cancelled" ? "경기 취소" : "상세 기록 수집 중"}</span>}</td>
+              <td>{game.home_hitter && game.home_pitcher ? <Ace hitter={game.home_hitter} pitcher={game.home_pitcher} /> : <span className="daily-pending">{game.status === "cancelled" ? "경기 취소" : "상세 기록 수집 중"}</span>}</td>
             </tr>)}</tbody>
           </table> : <table className="data-table latest-games-table schedule-only">
             <thead><tr><th>시간</th><th>원정</th><th aria-label="대결" /><th>홈</th><th>구장</th></tr></thead>

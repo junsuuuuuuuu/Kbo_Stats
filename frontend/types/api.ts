@@ -343,6 +343,8 @@ export interface LatestGameSummary {
   stadium: string;
   start_time: string;
   status: "completed" | "scheduled" | "cancelled";
+  detail_status?: "collected" | "pending" | "failed";
+  detail_error?: string | null;
   away: GameDayTeam;
   home: GameDayTeam;
   away_hitter: GameDayStar | null;

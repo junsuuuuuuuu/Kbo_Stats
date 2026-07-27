@@ -262,6 +262,8 @@ class LatestGameSummaryResponse(BaseModel):
     stadium: str
     start_time: str
     status: str
+    detail_status: str = "collected"
+    detail_error: str | None = None
     away: GameDayTeamResponse
     home: GameDayTeamResponse
     away_hitter: GameDayStarResponse | None

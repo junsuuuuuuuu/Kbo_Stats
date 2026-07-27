@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -139,6 +140,8 @@ class LatestGameSummary:
     stadium: str
     start_time: str
     status: str
+    detail_status: str
+    detail_error: str | None
     away: GameDayTeam
     home: GameDayTeam
     away_hitter: GameDayStar | None
@@ -286,10 +289,11 @@ def parse_game_day_rows(
             continue
         relay_text = texts[play_index + 1] if play_index + 1 < len(texts) else ""
         game_id_match = _GAME_ID_PATTERN.search(relay_text)
+        stadium_index = play_index + 5
         cancellation_reason = next(
             (
                 part
-                for text in texts
+                for text in texts[stadium_index + 1 :]
                 for part in _fragment_parts(text)
                 if "취소" in part
             ),
@@ -303,7 +307,6 @@ def parse_game_day_rows(
                 f"{TEAM_CODES_BY_NAME[home_name]}0"
             )
         )
-        stadium_index = play_index + 5
         stadium_parts = (
             _fragment_parts(texts[stadium_index]) if stadium_index < len(texts) else []
         )
@@ -492,17 +495,28 @@ class KboTeamScheduleClient:
             "X-Requested-With": "XMLHttpRequest", "Referer": main_url,
         }
         form = {"leId": "1", "srId": "0", "seasonId": str(season), "gameId": game_id}
-        with httpx.Client(headers=headers, timeout=12.0, follow_redirects=True) as client:
-            client.get(main_url).raise_for_status()
-            score_response = client.post(
-                f"{KBO_BASE_URL}/ws/Schedule.asmx/GetScoreBoardScroll", data=form
-            )
-            box_response = client.post(
-                f"{KBO_BASE_URL}/ws/Schedule.asmx/GetBoxScoreScroll", data=form
-            )
-            score_response.raise_for_status()
-            box_response.raise_for_status()
-            score, box = score_response.json(), box_response.json()
+        for attempt in range(1, 4):
+            try:
+                with httpx.Client(headers=headers, timeout=12.0, follow_redirects=True) as client:
+                    client.get(main_url).raise_for_status()
+                    score_response = client.post(
+                        f"{KBO_BASE_URL}/ws/Schedule.asmx/GetScoreBoardScroll", data=form
+                    )
+                    box_response = client.post(
+                        f"{KBO_BASE_URL}/ws/Schedule.asmx/GetBoxScoreScroll", data=form
+                    )
+                    score_response.raise_for_status()
+                    box_response.raise_for_status()
+                    score, box = score_response.json(), box_response.json()
+                if score.get("code") != "100" or box.get("code") != "100":
+                    raise ValueError(
+                        f"detail response code score={score.get('code')} box={box.get('code')}"
+                    )
+                break
+            except (httpx.HTTPError, KeyError, TypeError, ValueError):
+                if attempt == 3:
+                    raise
+                time.sleep(0.5 * (2 ** (attempt - 1)))
         if score.get("code") != "100" or box.get("code") != "100":
             raise ValueError("KBO 경기 상세 기록을 찾을 수 없습니다.")
         events = [
@@ -604,6 +618,8 @@ class KboTeamScheduleClient:
             stadium=detail.stadium,
             start_time=detail.start_time,
             status="completed",
+            detail_status="collected",
+            detail_error=None,
             away=self._day_team(detail.away),
             home=self._day_team(detail.home),
             away_hitter=self._hitter_star(detail.away),
@@ -728,6 +744,7 @@ class KboTeamScheduleClient:
         scheduled_games = parse_game_day_rows(rows, season=season, target_date=target_date)
         completed = [game for game in scheduled_games if game.away_score is not None]
         details_by_id: dict[str, TeamGameDetail] = {}
+        detail_errors: dict[str, str] = {}
         if completed:
             with ThreadPoolExecutor(max_workers=min(5, len(completed))) as executor:
                 futures = {
@@ -740,10 +757,12 @@ class KboTeamScheduleClient:
                         details_by_id[detail.game_id] = detail
                     except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
                         logger.warning(
-                            "kbo_game_detail_failed game_id=%s error=%s",
+                            "kbo_game_detail_failed game_id=%s error_type=%s error=%r",
                             futures[future],
+                            type(exception).__name__,
                             exception,
                         )
+                        detail_errors[futures[future]] = str(exception)
 
         summaries: list[LatestGameSummary] = []
         for game in scheduled_games:
@@ -763,8 +782,17 @@ class KboTeamScheduleClient:
                     stadium=game.stadium,
                     start_time=game.start_time,
                     status=(
-                        "cancelled" if game.cancellation_reason else
-                        "completed" if game.away_score is not None else "scheduled"
+                        "completed"
+                        if game.away_score is not None and game.home_score is not None
+                        else "cancelled"
+                        if game.cancellation_reason
+                        else "scheduled"
+                    ),
+                    detail_status="failed" if game.away_score is not None else "pending",
+                    detail_error=(
+                        detail_errors.get(game.game_id, "KBO 상세 기록을 불러오지 못했습니다.")
+                        if game.away_score is not None
+                        else None
                     ),
                     away=GameDayTeam(
                         TEAM_CODES_BY_NAME[game.away_name], game.away_name,
