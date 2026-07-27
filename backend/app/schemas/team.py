@@ -117,7 +117,10 @@ class TeamRosterChangesResponse(BaseModel):
             team_code=result.team_code,
             as_of_date=result.as_of_date,
             previous_as_of_date=result.previous_as_of_date,
-            registered=[RosterChangeMemberResponse.from_entity(member) for member in result.registered],
+            registered=[
+                RosterChangeMemberResponse.from_entity(member)
+                for member in result.registered
+            ],
             removed=[RosterChangeMemberResponse.from_entity(member) for member in result.removed],
         )
 
