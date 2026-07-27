@@ -12,7 +12,9 @@ from app.repositories.player import SqlAlchemyPlayerRepository
 from app.repositories.team import SqlAlchemyTeamRepository
 from app.schemas.team import LatestGameDayResponse
 from app.services.analytics import AnalyticsService
+from app.services.kbo_team_schedule import kbo_team_schedule_client
 from app.services.player import PlayerService
+from app.services.prediction import GamePredictionService
 from app.services.team import TeamService
 from scripts.collect_game_day import save_snapshot
 
@@ -75,3 +77,10 @@ def get_snapshot_saver() -> SnapshotSaver:
 
 
 SnapshotSaverDependency = Annotated[SnapshotSaver, Depends(get_snapshot_saver)]
+
+
+def get_prediction_service(session: DatabaseSession) -> GamePredictionService:
+    return GamePredictionService(SqlAlchemyTeamRepository(session), kbo_team_schedule_client)
+
+
+PredictionServiceDependency = Annotated[GamePredictionService, Depends(get_prediction_service)]

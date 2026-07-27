@@ -15,6 +15,7 @@ import type {
   RankingValueType,
   SimilarResponse,
   LatestGameDay,
+  GamePredictionApiResponse,
   TeamList,
   TeamGameResults,
   TeamGameDetail,
@@ -81,6 +82,8 @@ export const api = {
     request<LatestGameDay>("/teams/games/latest", { season }),
   gamesByDay: (gameDate: string, season = CURRENT_SEASON) =>
     request<LatestGameDay>("/teams/games/day", { game_date: gameDate, season }),
+  gamePrediction: (gameId: string, season = CURRENT_SEASON) =>
+    request<GamePredictionApiResponse>(`/predictions/games/${gameId}`, { season }),
   prediction: (role: AnalyticsRole, id: number) =>
     request<PredictionResponse>(`/analytics/predictions/${role}/${id}`),
   growth: (role: AnalyticsRole, id: number, metrics: string) =>

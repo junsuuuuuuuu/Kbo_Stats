@@ -364,6 +364,86 @@ export interface LatestGameDay {
   source_url: string;
 }
 
+export interface GamePredictionComparison {
+  recent_ten: string;
+  season_record: string;
+  home_away_record: string;
+  head_to_head: string;
+  batting: number | null;
+  pitching: number | null;
+}
+
+export interface GamePredictionTeam {
+  code: string;
+  name: string;
+  win_probability: number;
+  score: number;
+  comparison: GamePredictionComparison;
+  starting_pitcher: { name: string; era: number | null; record: string | null } | null;
+}
+
+export interface GamePredictionApiRecord {
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winning_percentage: number | null;
+  status: string;
+}
+
+export interface GamePredictionApiTeam {
+  team_code: string;
+  team_name: string;
+  season_record: GamePredictionApiRecord;
+  home_record: GamePredictionApiRecord;
+  away_record: GamePredictionApiRecord;
+  metrics: {
+    season_win_percentage: number | null;
+    ranking: number | null;
+    recent_runs_for_per_game: number | null;
+    recent_runs_against_per_game: number | null;
+    recent_run_differential: number | null;
+    status: string;
+  };
+}
+
+export interface GamePredictionApiResponse {
+  game_id: string;
+  season: number;
+  game_date: string;
+  start_time: string;
+  stadium: string;
+  away: GamePredictionApiTeam;
+  home: GamePredictionApiTeam;
+  away_starting_pitcher: { name: string | null; status: string; note: string | null };
+  home_starting_pitcher: { name: string | null; status: string; note: string | null };
+  head_to_head: GamePredictionApiRecord;
+  away_win_probability: number;
+  home_win_probability: number;
+  favored_team_code: string | null;
+  favored_team_name: string | null;
+  expected_score: { away: number | null; home: number | null };
+  confidence: string;
+  confidence_score: number;
+  key_reasons: string[];
+  explanation: string;
+}
+
+export interface GamePredictionResponse {
+  game_id: string;
+  season: number;
+  game_date: string;
+  start_time: string;
+  stadium: string;
+  status: "scheduled" | "unavailable";
+  confidence: "high" | "medium" | "low" | null;
+  favorite_team: "away" | "home" | null;
+  key_reasons: string[];
+  ai_analysis: string | null;
+  away: GamePredictionTeam;
+  home: GamePredictionTeam;
+}
+
 export interface PlayerBenchmarks {
   player_id: number;
   role: AnalyticsRole;

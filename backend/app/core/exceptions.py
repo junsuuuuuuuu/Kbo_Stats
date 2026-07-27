@@ -51,6 +51,19 @@ class GameDayNotFoundError(ApplicationError):
         )
 
 
+class PredictionGameNotFoundError(ApplicationError):
+    """Requested game is not available in the KBO schedule."""
+
+    code = "PREDICTION_GAME_NOT_FOUND"
+    status_code = 404
+
+    def __init__(self, game_id: str, season: int) -> None:
+        super().__init__(
+            "예측할 경기 일정을 찾을 수 없습니다.",
+            {"game_id": game_id, "season": season},
+        )
+
+
 class AnalyticsNotAvailableError(ApplicationError):
     """선수 기록이 분석 기능의 최소 표본 조건을 만족하지 못한 경우."""
 

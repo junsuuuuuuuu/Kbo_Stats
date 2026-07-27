@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { DragScroll } from "@/components/drag-scroll";
@@ -18,6 +18,13 @@ function Ace({ hitter, pitcher }: { hitter: GameDayStar; pitcher: GameDayStar })
   </div>;
 }
 
+function gameHref(game: LatestGameSummary) {
+  if (!game.game_id || game.status === "cancelled") return null;
+  return game.status === "scheduled"
+    ? `/games/${game.game_id}/prediction`
+    : `/teams/${game.away.team_code}/games/${game.game_id}`;
+}
+
 function Matchup({ game }: { game: LatestGameSummary }) {
   const content = <>
     <span>{game.away.team_name}</span>
@@ -31,9 +38,7 @@ function Matchup({ game }: { game: LatestGameSummary }) {
           : "승·패 투수 없음"}
     </small>
   </>;
-  return game.status === "completed"
-    ? <Link className="daily-matchup" href={`/teams/${game.away.team_code}/games/${game.game_id}`} rel="noreferrer" target="_blank">{content}</Link>
-    : <div className="daily-matchup">{content}</div>;
+  return <div className="daily-matchup">{content}</div>;
 }
 
 function adjacentDate(value: string, offset: number) {
@@ -50,6 +55,7 @@ function dateWithWeekday(value: string) {
 }
 
 export function LatestGameDayTable() {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const latest = useQuery({
     queryKey: ["game-day", selectedDate ?? "latest", CURRENT_SEASON],
@@ -73,19 +79,21 @@ export function LatestGameDayTable() {
         {!latest.data.games.length ? <div className="game-day-empty"><strong>예정된 경기가 없습니다</strong><span>화살표를 눌러 다른 날짜의 경기와 일정을 확인하세요.</span></div> : <DragScroll className="latest-games-scroll">
           {showAces ? <table className="data-table latest-games-table">
             <thead><tr><th>시간</th><th>경기 결과</th><th>구장</th><th>원정팀 대표 선수</th><th>홈팀 대표 선수</th></tr></thead>
-            <tbody>{latest.data.games.map((game) => <tr key={game.game_id}>
-              <td>{game.start_time}</td><td><Matchup game={game} /></td><td>{game.stadium}</td>
+            <tbody>{latest.data.games.map((game) => <tr className={gameHref(game) ? "schedule-row clickable" : "schedule-row cancelled"} key={game.game_id} onClick={() => { const href = gameHref(game); if (href) router.push(href); }} onKeyDown={(event) => { const href = gameHref(game); if ((event.key === "Enter" || event.key === " ") && href) { event.preventDefault(); router.push(href); } }} role={gameHref(game) ? "link" : undefined} tabIndex={gameHref(game) ? 0 : undefined}>
+              <td>{game.start_time}</td>
+              <td><Matchup game={game} /></td>
+              <td>{game.stadium}</td>
               <td>{game.away_hitter && game.away_pitcher ? <Ace hitter={game.away_hitter} pitcher={game.away_pitcher} /> : <span className="daily-pending">{game.status === "cancelled" ? "경기 취소" : "상세 기록 수집 중"}</span>}</td>
               <td>{game.home_hitter && game.home_pitcher ? <Ace hitter={game.home_hitter} pitcher={game.home_pitcher} /> : <span className="daily-pending">{game.status === "cancelled" ? "경기 취소" : "상세 기록 수집 중"}</span>}</td>
             </tr>)}</tbody>
           </table> : <table className="data-table latest-games-table schedule-only">
             <thead><tr><th>시간</th><th>원정</th><th aria-label="대결" /><th>홈</th><th>구장</th></tr></thead>
-            <tbody>{latest.data.games.map((game) => <tr key={game.game_id}>
+            <tbody>{latest.data.games.map((game) => <tr className={gameHref(game) ? "schedule-row clickable" : "schedule-row cancelled"} key={game.game_id} onClick={() => { const href = gameHref(game); if (href) router.push(href); }} onKeyDown={(event) => { const href = gameHref(game); if ((event.key === "Enter" || event.key === " ") && href) { event.preventDefault(); router.push(href); } }} role={gameHref(game) ? "link" : undefined} tabIndex={gameHref(game) ? 0 : undefined}>
               <td>{game.start_time}</td>
               <td><div className="schedule-team away"><strong>{game.away.team_name}</strong><small>선발 {game.away_starting_pitcher ?? "미정"}</small></div></td>
               <td><strong className={`schedule-versus ${game.status === "cancelled" ? "cancelled" : ""}`}>{game.status === "cancelled" ? "우취" : "VS"}</strong></td>
               <td><div className="schedule-team home"><strong>{game.home.team_name}</strong><small>선발 {game.home_starting_pitcher ?? "미정"}</small></div></td>
-              <td><strong>{game.stadium}</strong></td>
+              <td><div className="schedule-stadium"><strong>{game.stadium}</strong>{game.status === "scheduled" ? <small className="schedule-action">예측 분석 →</small> : null}</div></td>
             </tr>)}</tbody>
           </table>}
         </DragScroll>}

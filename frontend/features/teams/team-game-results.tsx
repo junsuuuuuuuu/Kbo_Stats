@@ -42,7 +42,7 @@ export function TeamGameResultTable({ teamCode, data, error, isError, isLoading 
                   <td>{game.venue === "home" ? "홈" : "원정"}</td>
                   <td className="score">{game.team_score} : {game.opponent_score}</td>
                   <td>{game.stadium}</td>
-                  <td>{game.game_url ? <a aria-label="KBO 경기 리뷰" href={game.game_url} rel="noreferrer" target="_blank"><ArrowUpRight size={15} /></a> : null}</td>
+                  <td>{game.game_id ? <Link aria-label="우리 경기 상세 결과" href={`/teams/${teamCode}/games/${game.game_id}`}><ArrowUpRight size={15} /></Link> : null}</td>
                 </tr>
               ))}</tbody>
             </table>
