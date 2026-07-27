@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import httpx
 from fastapi import APIRouter, Path, Query
 
-from app.api.dependencies import DatabaseSession, TeamServiceDependency
+from app.api.dependencies import DatabaseSession, SnapshotSaverDependency, TeamServiceDependency
 from app.core.constants import CURRENT_SEASON, FIRST_KBO_SEASON
 from app.core.exceptions import GameDayNotFoundError, UpstreamDataError
 from app.schemas.common import ErrorResponse
@@ -24,7 +24,6 @@ from app.schemas.team import (
 )
 from app.services.kbo_game_log import KBO_BASE_URL
 from app.services.kbo_team_schedule import SCHEDULE_PATH, kbo_team_schedule_client
-from scripts.collect_game_day import save_snapshot
 
 router = APIRouter(prefix="/teams", tags=["Teams"])
 
@@ -91,6 +90,7 @@ def get_team_standing(
 def get_latest_games(
     service: TeamServiceDependency,
     session: DatabaseSession,
+    snapshot_saver: SnapshotSaverDependency,
     season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> LatestGameDayResponse:
     try:
@@ -99,18 +99,24 @@ def get_latest_games(
         snapshot = None
 
     today = datetime.now(ZoneInfo("Asia/Seoul")).date()
-    if snapshot is not None and snapshot.game_date >= today:
+    snapshot_has_games = snapshot is not None and bool(snapshot.payload.get("games"))
+    if snapshot_has_games and snapshot.game_date >= today:
         return LatestGameDayResponse.model_validate(snapshot.payload)
 
     try:
         collected = kbo_team_schedule_client.latest_game_day(season)
     except (httpx.HTTPError, KeyError, TypeError, ValueError) as exception:
-        if snapshot is not None:
+        # A stale snapshot is still a safe fallback during an upstream outage.
+        # A same-day empty snapshot is not: it is precisely the state that can
+        # hide yesterday's games after a schedule-only collection.
+        if snapshot is not None and (
+            snapshot.game_date < today or snapshot_has_games
+        ):
             return LatestGameDayResponse.model_validate(snapshot.payload)
         raise UpstreamDataError() from exception
 
     response = LatestGameDayResponse.model_validate(collected, from_attributes=True)
-    save_snapshot(session, response, season)
+    snapshot_saver(session, response, season)
     return response
 
 
@@ -122,6 +128,7 @@ def get_latest_games(
 def get_games_by_day(
     service: TeamServiceDependency,
     session: DatabaseSession,
+    snapshot_saver: SnapshotSaverDependency,
     game_date: Annotated[date, Query()],
     season: Annotated[int, Query(ge=CURRENT_SEASON, le=CURRENT_SEASON)] = CURRENT_SEASON,
 ) -> LatestGameDayResponse:
@@ -138,7 +145,7 @@ def get_games_by_day(
         raise UpstreamDataError() from exception
 
     response = LatestGameDayResponse.model_validate(collected, from_attributes=True)
-    save_snapshot(session, response, season)
+    snapshot_saver(session, response, season)
     return response
 
 

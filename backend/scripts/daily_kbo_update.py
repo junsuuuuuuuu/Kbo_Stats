@@ -161,9 +161,31 @@ def main() -> None:
         raise ValueError("--prefetch-days must not be negative")
 
     base_date = args.date or datetime.now(ZoneInfo("Asia/Seoul")).date()
-    response = collect_game_day(args.season, args.date)
+    if args.date is not None:
+        collection_dates = [args.date]
+    else:
+        # A snapshot collected before yesterday's games finish must be refreshed.
+        # Collecting today alone can otherwise leave the previous game day stale.
+        collection_dates = [
+            game_date
+            for game_date in (base_date - timedelta(days=1), base_date)
+            if game_date.year == args.season
+        ]
+
+    collected_states: list[tuple[LatestGameDayResponse, SnapshotState]] = []
+    for game_date in collection_dates:
+        response_for_date = collect_game_day(args.season, game_date)
+        previous_for_date = save_game_day_response(response_for_date, args.season)
+        collected_states.append((response_for_date, previous_for_date))
+
+    # Use the day with the most completed games for the guarded heavy update.
+    # This keeps a completed yesterday snapshot from being hidden by today's
+    # scheduled or empty slate.
+    response, previous = max(
+        collected_states,
+        key=lambda item: (completed_game_count(item[0]), item[0].game_date),
+    )
     completed_count = completed_game_count(response)
-    previous = save_game_day_response(response, args.season)
 
     if args.prefetch_days:
         prefetch_future_game_days(args.season, base_date, args.prefetch_days)

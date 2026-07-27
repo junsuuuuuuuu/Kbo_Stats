@@ -1,8 +1,10 @@
 """구단 목록과 1군 등록 로스터 REST API 계약 테스트."""
 
+import httpx
 import pytest
 from httpx import AsyncClient
 
+from app.services.kbo_team_schedule import kbo_team_schedule_client
 from tests.fakes import FakeTeamRepository
 
 pytestmark = pytest.mark.anyio
@@ -85,15 +87,22 @@ async def test_home_games_are_served_from_collected_snapshot(client: AsyncClient
     assert response.json()["games"] == []
 
 
-async def test_missing_collected_game_day_returns_404(
-    client: AsyncClient, team_repository: FakeTeamRepository
+async def test_missing_collected_game_day_returns_upstream_error(
+    client: AsyncClient,
+    team_repository: FakeTeamRepository,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     team_repository.game_day = None
+
+    def fail_upstream(_game_date: str, _season: int):
+        raise httpx.ConnectError("upstream unavailable")
+
+    monkeypatch.setattr(kbo_team_schedule_client, "game_day", fail_upstream)
 
     response = await client.get(
         "/api/v1/teams/games/day",
         params={"season": 2026, "game_date": "2026-07-19"},
     )
 
-    assert response.status_code == 404
-    assert response.json()["error"]["code"] == "GAME_DAY_NOT_FOUND"
+    assert response.status_code == 502
+    assert response.json()["error"]["code"] == "UPSTREAM_DATA_UNAVAILABLE"

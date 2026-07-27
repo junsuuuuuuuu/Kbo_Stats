@@ -1,5 +1,6 @@
 """Router에서 사용할 Repository와 Service 의존성 조립."""
 
+from collections.abc import Callable
 from functools import lru_cache
 from typing import Annotated
 
@@ -9,9 +10,11 @@ from sqlalchemy.orm import Session
 from app.database.session import get_db_session
 from app.repositories.player import SqlAlchemyPlayerRepository
 from app.repositories.team import SqlAlchemyTeamRepository
+from app.schemas.team import LatestGameDayResponse
 from app.services.analytics import AnalyticsService
 from app.services.player import PlayerService
 from app.services.team import TeamService
+from scripts.collect_game_day import save_snapshot
 
 DatabaseSession = Annotated[Session, Depends(get_db_session)]
 
@@ -60,3 +63,15 @@ def get_analytics_service() -> AnalyticsService:
 
 
 AnalyticsServiceDependency = Annotated[AnalyticsService, Depends(get_analytics_service)]
+
+
+SnapshotSaver = Callable[[Session, LatestGameDayResponse, int], None]
+
+
+def get_snapshot_saver() -> SnapshotSaver:
+    """Return the persistence hook used after an upstream snapshot is collected."""
+
+    return save_snapshot
+
+
+SnapshotSaverDependency = Annotated[SnapshotSaver, Depends(get_snapshot_saver)]

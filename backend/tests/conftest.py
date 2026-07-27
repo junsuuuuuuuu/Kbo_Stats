@@ -5,7 +5,12 @@ from collections.abc import AsyncGenerator
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.api.dependencies import get_player_service, get_team_service
+from app.api.dependencies import (
+    get_db_session,
+    get_player_service,
+    get_snapshot_saver,
+    get_team_service,
+)
 from app.main import create_app
 from app.services.player import PlayerService
 from app.services.team import TeamService
@@ -43,6 +48,10 @@ async def client(
     application = create_app()
     application.dependency_overrides[get_player_service] = lambda: PlayerService(repository)
     application.dependency_overrides[get_team_service] = lambda: TeamService(team_repository)
+    # API tests use in-memory repositories. Keep the live-collection write hook
+    # out of these tests and prevent an accidental connection to local MySQL.
+    application.dependency_overrides[get_db_session] = lambda: None
+    application.dependency_overrides[get_snapshot_saver] = lambda: lambda *_args: None
     transport = ASGITransport(app=application)
     async with AsyncClient(transport=transport, base_url="http://test") as test_client:
         yield test_client
