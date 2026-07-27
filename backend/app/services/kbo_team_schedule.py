@@ -86,7 +86,7 @@ class GamePitcher:
     strikeouts: int
     runs_allowed: int
     earned_runs: int
-    earned_run_average: float
+    earned_run_average: float | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -172,6 +172,13 @@ class _ScheduledGame:
     away_score: int | None
     home_score: int | None
     cancellation_reason: str | None
+
+
+def parse_optional_float(value: str) -> float | None:
+    normalized = value.strip()
+    if not normalized or normalized in {"-", "--", "N/A"}:
+        return None
+    return float(normalized)
 
 
 def _fragment_parts(fragment: str) -> list[str]:
@@ -463,7 +470,8 @@ class KboTeamScheduleClient:
                 at_bats=int(values[9]), hits_allowed=int(values[10]),
                 home_runs_allowed=int(values[11]), walks_and_hit_batters=int(values[12]),
                 strikeouts=int(values[13]), runs_allowed=int(values[14]),
-                earned_runs=int(values[15]), earned_run_average=float(values[16]),
+                earned_runs=int(values[15]),
+                earned_run_average=parse_optional_float(values[16]),
             ))
 
         team_totals = totals[index]

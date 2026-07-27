@@ -213,7 +213,7 @@ class GamePitcherResponse(BaseModel):
     strikeouts: int
     runs_allowed: int
     earned_runs: int
-    earned_run_average: float
+    earned_run_average: float | None
 
 
 class GameTeamBoxResponse(BaseModel):
