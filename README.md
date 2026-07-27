@@ -382,7 +382,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 | 구분 | 내용 |
 |---|---|
 | 프로젝트 유형 | 개인 프로젝트 |
-| 개발자 | [이름·GitHub 프로필 추가 필요] |
+| 개발자 | [윤준수](https://github.com/junsuuuuuuuu) |
 | 개발 기간 | 2026-07-19 ~ 현재 진행 중 |
 | 담당 | 데이터 수집·전처리, DB, Backend, ML, Frontend, 테스트, 배포 설정, 문서화 전체 |
 
