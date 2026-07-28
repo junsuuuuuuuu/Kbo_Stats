@@ -195,7 +195,7 @@ export function CareerRecordDashboard({ role, rows }: CareerRecordDashboardProps
 
       <div className="table-wrap career-table-wrap">
         <table className="data-table career-table">
-          <thead>
+          <thead> 
             <tr>
               <th>시즌</th>
               <th>팀</th>
