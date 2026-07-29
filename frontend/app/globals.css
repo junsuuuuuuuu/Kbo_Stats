@@ -415,6 +415,9 @@ main { min-height: calc(100vh - 48px); }
 .prediction-comparison-row b { color: var(--muted); font-size: 12px; font-weight: 600; }
 .prediction-comparison-row span:first-child { text-align: right; }
 .prediction-comparison-row span:last-child { text-align: left; }
+.recent-metric-value { display: inline-flex; align-items: center; gap: 7px; }
+.recent-metric-value small { color: var(--muted); font-size: 10px; font-weight: 500; white-space: nowrap; }
+.metric-empty { color: var(--muted); font-size: 12px; }
 .prediction-starters { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .prediction-starter { display: grid; gap: 5px; padding: 18px; border-radius: 12px; background: var(--surface-2); }
 .prediction-starter span, .prediction-starter small { color: var(--muted); font-size: 12px; }

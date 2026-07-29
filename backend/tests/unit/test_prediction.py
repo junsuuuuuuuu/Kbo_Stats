@@ -11,7 +11,14 @@ from app.services.kbo_team_schedule import (
     LatestGameSummary,
     TeamGameResult,
 )
-from app.services.prediction import GamePredictionService
+from app.services.prediction import (
+    GamePredictionService,
+    _metrics,
+    _probability,
+    _recent_results,
+    _record_from_results,
+    _TeamInputs,
+)
 
 
 def _standing(code: str, wins: int, losses: int, *, home: str = "10-0-5", away: str = "8-0-7"):
@@ -48,6 +55,76 @@ def _result(team: str, opponent: str, result: str, score: int, against: int) -> 
         game_url=None,
         game_id=None,
     )
+
+
+def _dated_result(day: str, result: str, score: int, against: int) -> TeamGameResult:
+    return TeamGameResult(
+        game_date=day,
+        opponent="상대",
+        venue="home",
+        result=result,
+        team_score=score,
+        opponent_score=against,
+        stadium="구장",
+        game_url=None,
+        game_id=None,
+    )
+
+
+def test_recent_metrics_use_only_the_latest_ten_completed_games_before_target_date():
+    results = [
+        _dated_result(f"2026-07-{day:02d}", "W", 10, 1)
+        for day in range(1, 13)
+    ]
+    results.extend(
+        [
+            _dated_result("2026-07-26", "W", 99, 0),
+            _dated_result("2026-07-27", "", 88, 0),
+            _dated_result("2026-07-28", "CANCELLED", 77, 0),
+        ]
+    )
+
+    recent = _recent_results(results, date(2026, 7, 26))
+
+    assert len(recent) == 10
+    assert all(item.game_date < "2026-07-26" for item in recent)
+    assert all(item.result == "W" for item in recent)
+    metrics = _metrics(None, recent)
+    assert metrics.recent_games_count == 10
+    assert metrics.recent_runs_for_per_game == 10
+    assert metrics.recent_runs_against_per_game == 1
+    assert metrics.recent_run_differential == 9
+
+
+def test_recent_metrics_mark_partial_data_and_keep_boxscore_metrics_unavailable():
+    recent = [
+        _dated_result("2026-07-24", "W", 6, 3),
+        _dated_result("2026-07-23", "L", 2, 4),
+    ]
+
+    metrics = _metrics(None, recent)
+
+    assert metrics.recent_games_count == 2
+    assert metrics.recent_games_status == "partial"
+    assert metrics.recent_win_percentage == pytest.approx(0.5)
+    assert metrics.recent_batting_average is None
+    assert metrics.recent_ops is None
+    assert metrics.recent_era is None
+    assert metrics.recent_whip is None
+    assert metrics.batting_status == "unavailable"
+    assert metrics.pitching_status == "unavailable"
+
+
+def test_recent_form_is_used_as_a_prediction_signal():
+    strong_recent = [_dated_result("2026-07-25", "W", 8, 1)]
+    weak_recent = [_dated_result("2026-07-25", "L", 1, 8)]
+    away = _TeamInputs(None, strong_recent, strong_recent)
+    home = _TeamInputs(None, weak_recent, weak_recent)
+
+    probability, reasons, _ = _probability(away, home, _record_from_results([]))
+
+    assert probability > 0.5
+    assert reasons
 
 
 class FakePredictionRepository:

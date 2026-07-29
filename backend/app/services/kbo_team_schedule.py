@@ -66,6 +66,10 @@ class GameHitter:
     runs: int
     batting_average: float
     plate_appearances: list[str]
+    walks: int = 0
+    hit_by_pitch: int = 0
+    sacrifice_flies: int = 0
+    total_bases: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -425,6 +429,36 @@ class KboTeamScheduleClient:
             ])
         return results
 
+    @staticmethod
+    def _plate_appearance_totals(values: list[str]) -> tuple[int, int, int, int | None]:
+        """Return BB, HBP, SF and total bases when KBO PA labels are available."""
+
+        walks = hit_by_pitch = sacrifice_flies = total_bases = 0
+        hit_count = 0
+        for raw_value in values:
+            value = raw_value.replace(" ", "").upper()
+            if not value:
+                continue
+            if "볼넷" in value or value in {"BB", "四球"}:
+                walks += 1
+            elif "사구" in value or "몸에맞는공" in value or value in {"HBP", "死球"}:
+                hit_by_pitch += 1
+            elif "희생플라이" in value or value in {"SF", "犠牲フライ"}:
+                sacrifice_flies += 1
+            elif "홈런" in value or value in {"HR", "HOMERUN"}:
+                total_bases += 4
+                hit_count += 1
+            elif "3루타" in value or value == "3B":
+                total_bases += 3
+                hit_count += 1
+            elif "2루타" in value or value == "2B":
+                total_bases += 2
+                hit_count += 1
+            elif "1루타" in value or value == "안타" or value in {"H", "1B", "SINGLE"}:
+                total_bases += 1
+                hit_count += 1
+        return walks, hit_by_pitch, sacrifice_flies, total_bases if hit_count else None
+
     def _team_box(
         self,
         *,
@@ -449,11 +483,18 @@ class KboTeamScheduleClient:
         ):
             if len(identity) < 3 or len(stats) < 5:
                 continue
+            walks, hit_by_pitch, sacrifice_flies, total_bases = self._plate_appearance_totals(
+                [value for value in appearances if value]
+            )
             hitters.append(GameHitter(
                 batting_order=identity[0], position=identity[1], player_name=identity[2],
                 at_bats=int(stats[0]), hits=int(stats[1]), runs_batted_in=int(stats[2]),
                 runs=int(stats[3]), batting_average=float(stats[4]),
                 plate_appearances=[value for value in appearances if value],
+                walks=walks,
+                hit_by_pitch=hit_by_pitch,
+                sacrifice_flies=sacrifice_flies,
+                total_bases=total_bases,
             ))
 
         pitcher_group = box["arrPitcher"][index]  # type: ignore[index]

@@ -20,11 +20,21 @@ class PredictionForm(BaseModel):
 
 
 class PredictionTeamMetrics(BaseModel):
+    recent_games_count: int = 0
+    recent_games_status: str = "unavailable"
+    recent_win_percentage: float | None = None
     season_win_percentage: float | None = None
     ranking: int | None = None
     recent_runs_for_per_game: float | None = None
     recent_runs_against_per_game: float | None = None
     recent_run_differential: float | None = None
+    recent_batting_average: float | None = None
+    recent_ops: float | None = None
+    recent_era: float | None = None
+    recent_whip: float | None = None
+    recent_strikeouts_per_game: float | None = None
+    batting_status: str = "unavailable"
+    pitching_status: str = "unavailable"
     status: str = "partial"
 
 
@@ -34,6 +44,7 @@ class PredictionTeam(BaseModel):
     season_record: PredictionRecord
     home_record: PredictionRecord
     away_record: PredictionRecord
+    recent_form: PredictionForm
     metrics: PredictionTeamMetrics
 
 
