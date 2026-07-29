@@ -18,7 +18,7 @@ export default function HomePage() {
       <section className="hero landing-hero">
         <div className="hero-copy landing-hero-copy">
           <span className="eyebrow">KBO DATA &amp; AI <i>•</i> 1982–2026</span>
-          <h1>1982~2026 KBO 선수 데이터를<br /><em>AI로 분석합니다.</em></h1>
+          <h1>1982~2026 KBO 선수 데이터를<br /><em>분석.</em></h1>
           <p>45년의 선수 기록을 모아 비교·예측·추천까지 연결하는 KBO 데이터 분석 플랫폼입니다.</p>
           <div className="hero-actions">
             <Link className="button" href="/players">선수 탐색하기 <ArrowRight size={17} /></Link>
@@ -27,7 +27,7 @@ export default function HomePage() {
           <div className="hero-proof"><span><i />1982–2026 데이터 범위</span><span><i />2026 시즌 진행 데이터 포함</span></div>
         </div>
         <aside className="hero-scale-card" aria-label="프로젝트 데이터 규모">
-          <div className="hero-scale-header"><span>PROJECT SCOPE</span><small>DATA SNAPSHOT · {PROJECT_METRICS.asOf}</small></div>
+          <div className="hero-scale-header">{PROJECT_METRICS.asOf}</div>
           <div className="hero-scale-list">
             {scaleCards.map(({ value, label, icon: Icon }) => <div className="hero-scale-item" key={label}><span className="hero-scale-icon"><Icon size={16} /></span><div><strong>{value}</strong><span>{label}</span></div></div>)}
           </div>

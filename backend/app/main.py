@@ -1,7 +1,9 @@
 """FastAPI application factory와 공통 middleware/exception handler."""
 
+import asyncio
 import logging
 import time
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request, status
@@ -15,8 +17,24 @@ from app.core.config import get_settings
 from app.core.constants import CURRENT_SEASON, FIRST_KBO_SEASON
 from app.core.exceptions import ApplicationError
 from app.schemas.common import ErrorBody, ErrorResponse
+from app.services.game_day_sync import run_startup_game_day_sync
 
 logger = logging.getLogger("kbo_api")
+
+
+@asynccontextmanager
+async def app_lifespan(application: FastAPI):
+    settings = get_settings()
+    sync_task = None
+    if settings.startup_game_day_sync_enabled:
+        sync_task = asyncio.create_task(
+            asyncio.to_thread(run_startup_game_day_sync, settings.startup_game_day_sync_season)
+        )
+    try:
+        yield
+    finally:
+        if sync_task is not None and not sync_task.done():
+            sync_task.cancel()
 
 
 def error_response(
@@ -39,6 +57,7 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        lifespan=app_lifespan,
     )
     application.add_middleware(
         CORSMiddleware,

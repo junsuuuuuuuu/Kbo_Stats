@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     sql_echo: bool = False
     db_pool_recycle_seconds: int = 1800
     db_pool_timeout_seconds: int = 10
+    startup_game_day_sync_enabled: bool = True
+    startup_game_day_sync_season: int = 2026
 
     model_config = SettingsConfigDict(
         env_file=".env",
