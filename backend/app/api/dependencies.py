@@ -80,7 +80,11 @@ SnapshotSaverDependency = Annotated[SnapshotSaver, Depends(get_snapshot_saver)]
 
 
 def get_prediction_service(session: DatabaseSession) -> GamePredictionService:
-    return GamePredictionService(SqlAlchemyTeamRepository(session), kbo_team_schedule_client)
+    return GamePredictionService(
+        SqlAlchemyTeamRepository(session),
+        kbo_team_schedule_client,
+        SqlAlchemyPlayerRepository(session),
+    )
 
 
 PredictionServiceDependency = Annotated[GamePredictionService, Depends(get_prediction_service)]

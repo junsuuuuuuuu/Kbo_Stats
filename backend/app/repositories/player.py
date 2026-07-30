@@ -7,6 +7,7 @@ from sqlalchemy import Select, func, or_, select, tuple_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.player import Player
+from app.models.roster import TeamRoster
 from app.models.standing import TeamStanding
 from app.models.stats import BattingSeasonStat, PitchingSeasonStat
 from app.models.team import Team
@@ -59,6 +60,8 @@ class PlayerRepository(Protocol):
     def search(self, criteria: PlayerSearchCriteria) -> tuple[list[Player], int]: ...
 
     def get_by_id(self, player_id: int) -> Player | None: ...
+
+    def find_pitcher(self, player_name: str, team_code: str, season: int) -> Player | None: ...
 
     def list_batting_seasons(self, player_id: int) -> list[BattingSeasonStat]: ...
 
@@ -151,6 +154,22 @@ class SqlAlchemyPlayerRepository:
             .where(Player.player_id == player_id)
         )
         return self._session.scalar(statement)
+
+    def find_pitcher(self, player_name: str, team_code: str, season: int) -> Player | None:
+        normalized = "".join(player_name.split()).lower()
+        statement = (
+            select(Player)
+            .join(TeamRoster, TeamRoster.player_id == Player.player_id)
+            .where(
+                Player.search_name == normalized,
+                TeamRoster.team_code == team_code,
+                TeamRoster.season == season,
+                TeamRoster.position_code == "P",
+            )
+            .distinct()
+        )
+        candidates = list(self._session.scalars(statement).unique().all())
+        return candidates[0] if len(candidates) == 1 else None
 
     def list_batting_seasons(self, player_id: int) -> list[BattingSeasonStat]:
         """타격 기록을 시즌, 팀 순서로 반환한다."""

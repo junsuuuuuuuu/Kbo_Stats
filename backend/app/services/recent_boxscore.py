@@ -11,7 +11,12 @@ from app.services.kbo_team_schedule import TeamGameDetail
 @dataclass(frozen=True)
 class RecentBoxscoreMetrics:
     batting_average: float | None = None
+    on_base_percentage: float | None = None
+    slugging_percentage: float | None = None
     ops: float | None = None
+    hits_per_game: float | None = None
+    home_runs: int | None = None
+    walks: int | None = None
     era: float | None = None
     whip: float | None = None
     strikeouts_per_game: float | None = None
@@ -50,19 +55,27 @@ def aggregate_boxscores(details: list[TeamGameDetail], team_code: str) -> Recent
     sacrifice_flies = sum(hitter.sacrifice_flies for hitter in hitters)
     batting_average = hits / at_bats if at_bats else None
     batting_status = (
-        "complete" if hitters and all(value is not None for value in total_bases) else "partial"
+        "available" if hitters and all(value is not None for value in total_bases) else "partial"
     )
+    on_base_percentage = None
+    slugging_percentage = None
     ops = None
-    if batting_average is not None and batting_status == "complete":
+    if batting_average is not None and batting_status == "available":
         on_base_denominator = at_bats + walks + hit_by_pitch + sacrifice_flies
-        slugging = sum(value or 0 for value in total_bases) / at_bats if at_bats else None
-        on_base = (
+        slugging_percentage = (
+            sum(value or 0 for value in total_bases) / at_bats if at_bats else None
+        )
+        on_base_percentage = (
             (hits + walks + hit_by_pitch) / on_base_denominator if on_base_denominator else None
         )
-        ops = on_base + slugging if on_base is not None and slugging is not None else None
+        ops = (
+            on_base_percentage + slugging_percentage
+            if on_base_percentage is not None and slugging_percentage is not None
+            else None
+        )
     outs = [innings_to_outs(pitcher.innings_pitched) for pitcher in pitchers]
     pitching_status = (
-        "complete" if pitchers and all(value is not None for value in outs) else "partial"
+        "available" if pitchers and all(value is not None for value in outs) else "partial"
     )
     total_outs = sum(value or 0 for value in outs)
     earned_runs = sum(pitcher.earned_runs for pitcher in pitchers)
@@ -75,7 +88,12 @@ def aggregate_boxscores(details: list[TeamGameDetail], team_code: str) -> Recent
     )
     return RecentBoxscoreMetrics(
         batting_average=batting_average,
+        on_base_percentage=on_base_percentage,
+        slugging_percentage=slugging_percentage,
         ops=ops,
+        hits_per_game=hits / len(details) if details else None,
+        home_runs=sum(hitter.home_runs for hitter in hitters) if hitters else None,
+        walks=walks if hitters else None,
         era=era,
         whip=whip,
         strikeouts_per_game=strikeouts_per_game,

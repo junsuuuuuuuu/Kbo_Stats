@@ -5,6 +5,7 @@ import type {
   GamePredictionResponse,
   GamePredictionTeam,
   RecentTeamMetrics,
+  StartingPitcherAnalysis,
 } from "@/types/api";
 
 function recordLabel(record: { wins: number; losses: number; draws: number }) {
@@ -25,16 +26,27 @@ function normalizeRecentMetrics(metrics: GamePredictionApiResponse["away"]["metr
     runs_against_per_game: metrics.recent_runs_against_per_game,
     run_differential: metrics.recent_run_differential,
     batting_average: firstNumber(metrics.recent_batting_average, metrics.recent_avg),
+    on_base_percentage: metrics.recent_on_base_percentage ?? null,
+    slugging_percentage: metrics.recent_slugging_percentage ?? null,
     ops: firstNumber(metrics.recent_ops, metrics.recent_on_base_plus_slugging),
+    hits_per_game: metrics.recent_hits_per_game ?? null,
+    home_runs: metrics.recent_home_runs ?? null,
+    walks: metrics.recent_walks ?? null,
     era: firstNumber(metrics.recent_era, metrics.recent_earned_run_average),
     whip: firstNumber(metrics.recent_whip, metrics.recent_walks_hits_per_inning),
     strikeouts_per_game: metrics.recent_strikeouts_per_game ?? null,
+    batting_status: normalizeStatus(metrics.batting_status ?? status),
+    pitching_status: normalizeStatus(metrics.pitching_status ?? status),
   };
+}
+
+function normalizeStatus(value: string | null | undefined): RecentTeamMetrics["status"] {
+  return value === "complete" || value === "available" ? "complete" : value === "partial" ? "partial" : "unavailable";
 }
 
 function normalizeTeam(
   team: GamePredictionApiResponse["away"],
-  pitcher: GamePredictionApiResponse["away_starting_pitcher"],
+  pitcher: StartingPitcherAnalysis,
 ): GamePredictionTeam {
   const recent = normalizeRecentMetrics(team.metrics);
   return {
@@ -52,9 +64,8 @@ function normalizeTeam(
       pitching: recent.era,
     },
     starting_pitcher: {
+      ...pitcher,
       name: pitcher.name ?? "선발투수 미정",
-      era: null,
-      record: pitcher.note,
     },
   };
 }

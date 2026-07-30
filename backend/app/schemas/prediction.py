@@ -29,7 +29,12 @@ class PredictionTeamMetrics(BaseModel):
     recent_runs_against_per_game: float | None = None
     recent_run_differential: float | None = None
     recent_batting_average: float | None = None
+    recent_on_base_percentage: float | None = None
+    recent_slugging_percentage: float | None = None
     recent_ops: float | None = None
+    recent_hits_per_game: float | None = None
+    recent_home_runs: int | None = None
+    recent_walks: int | None = None
     recent_era: float | None = None
     recent_whip: float | None = None
     recent_strikeouts_per_game: float | None = None
@@ -48,10 +53,39 @@ class PredictionTeam(BaseModel):
     metrics: PredictionTeamMetrics
 
 
+class PitcherSeasonAnalysis(BaseModel):
+    era: float | None = None
+    whip: float | None = None
+    innings: float | None = None
+    strikeouts: int | None = None
+    walks: int | None = None
+    hits: int | None = None
+    wins: int | None = None
+    losses: int | None = None
+    games: int | None = None
+    last_appearance_date: date | None = None
+    status: str = "unavailable"
+
+
+class PitcherOpponentAnalysis(BaseModel):
+    games: int = 0
+    starts: int = 0
+    innings: float | None = None
+    era: float | None = None
+    whip: float | None = None
+    hits: int | None = None
+    strikeouts: int | None = None
+    wins: int | None = None
+    losses: int | None = None
+    status: str = "unavailable"
+
+
 class StartingPitcherAnalysis(BaseModel):
     name: str | None = None
     status: str = "unavailable"
     note: str | None = None
+    season: PitcherSeasonAnalysis | None = None
+    vs_opponent: PitcherOpponentAnalysis | None = None
 
 
 class PredictionScore(BaseModel):

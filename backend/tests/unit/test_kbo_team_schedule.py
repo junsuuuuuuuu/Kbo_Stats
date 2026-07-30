@@ -1,8 +1,19 @@
-from app.services.kbo_team_schedule import parse_game_day_rows, parse_team_schedule_rows
+from app.services.kbo_team_schedule import (
+    KboTeamScheduleClient,
+    parse_game_day_rows,
+    parse_team_schedule_rows,
+)
 
 
 def _cell(text: str, class_name: str | None = None) -> dict[str, str | None]:
     return {"Text": text, "Class": class_name}
+
+
+def test_plate_appearance_parser_distinguishes_zero_bases_from_unknown_events():
+    parser = KboTeamScheduleClient()
+
+    assert parser._plate_appearance_totals(["삼진", "땅볼"]) == (0, 0, 0, 0, 0)
+    assert parser._plate_appearance_totals(["미확인 코드"])[3] is None
 
 
 def test_parse_team_schedule_returns_completed_games_and_skips_future_games() -> None:

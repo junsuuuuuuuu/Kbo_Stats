@@ -381,10 +381,52 @@ export interface RecentTeamMetrics {
   runs_against_per_game: number | null;
   run_differential: number | null;
   batting_average: number | null;
+  on_base_percentage: number | null;
+  slugging_percentage: number | null;
   ops: number | null;
+  hits_per_game: number | null;
+  home_runs: number | null;
+  walks: number | null;
   era: number | null;
   whip: number | null;
   strikeouts_per_game: number | null;
+  batting_status: "complete" | "partial" | "unavailable";
+  pitching_status: "complete" | "partial" | "unavailable";
+}
+
+export interface SeasonPitchingMetrics {
+  era: number | null;
+  whip: number | null;
+  innings: number | null;
+  strikeouts: number | null;
+  walks: number | null;
+  hits: number | null;
+  wins: number | null;
+  losses: number | null;
+  games: number | null;
+  last_appearance_date: string | null;
+  status: string;
+}
+
+export interface OpponentPitchingMetrics {
+  games: number;
+  starts: number;
+  innings: number | null;
+  era: number | null;
+  whip: number | null;
+  hits: number | null;
+  strikeouts: number | null;
+  wins: number | null;
+  losses: number | null;
+  status: string;
+}
+
+export interface StartingPitcherAnalysis {
+  name: string | null;
+  status: string;
+  note: string | null;
+  season: SeasonPitchingMetrics | null;
+  vs_opponent: OpponentPitchingMetrics | null;
 }
 
 export interface GamePredictionTeam {
@@ -394,7 +436,7 @@ export interface GamePredictionTeam {
   score: number | null;
   comparison: GamePredictionComparison;
   recent: RecentTeamMetrics;
-  starting_pitcher: { name: string; era: number | null; record: string | null } | null;
+  starting_pitcher: StartingPitcherAnalysis;
 }
 
 export interface GamePredictionApiRecord {
@@ -424,6 +466,8 @@ export interface GamePredictionApiTeam {
     recent_games?: number | null;
     recent_status?: string | null;
     recent_batting_average?: number | null;
+    recent_on_base_percentage?: number | null;
+    recent_slugging_percentage?: number | null;
     recent_avg?: number | null;
     recent_ops?: number | null;
     recent_on_base_plus_slugging?: number | null;
@@ -432,11 +476,14 @@ export interface GamePredictionApiTeam {
     recent_whip?: number | null;
     recent_walks_hits_per_inning?: number | null;
     recent_strikeouts_per_game?: number | null;
+    recent_hits_per_game?: number | null;
+    recent_home_runs?: number | null;
+    recent_walks?: number | null;
     batting_status?: string;
     pitching_status?: string;
     status: string;
   };
-  recent_form: GamePredictionApiRecord & { results: string[] };
+  recent_form: { results: string[]; record: GamePredictionApiRecord };
 }
 
 export interface GamePredictionApiResponse {
@@ -447,8 +494,8 @@ export interface GamePredictionApiResponse {
   stadium: string;
   away: GamePredictionApiTeam;
   home: GamePredictionApiTeam;
-  away_starting_pitcher: { name: string | null; status: string; note: string | null };
-  home_starting_pitcher: { name: string | null; status: string; note: string | null };
+  away_starting_pitcher: StartingPitcherAnalysis;
+  home_starting_pitcher: StartingPitcherAnalysis;
   head_to_head: GamePredictionApiRecord;
   away_win_probability: number;
   home_win_probability: number;

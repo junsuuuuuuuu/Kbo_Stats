@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from types import SimpleNamespace
 
 import pytest
 
@@ -14,6 +15,8 @@ from app.services.kbo_team_schedule import (
 from app.services.prediction import (
     GamePredictionService,
     _metrics,
+    _pitcher_opponent_analysis,
+    _pitcher_season_analysis,
     _probability,
     _recent_results,
     _record_from_results,
@@ -125,6 +128,99 @@ def test_recent_form_is_used_as_a_prediction_signal():
 
     assert probability > 0.5
     assert reasons
+
+
+def test_starting_pitcher_season_and_opponent_metrics_use_official_pitching_totals():
+    stats = [
+        SimpleNamespace(
+            season=2026,
+            innings_pitched_outs=30,
+            earned_runs=4,
+            hits_allowed=10,
+            walks_allowed=3,
+            strikeouts=18,
+            wins=2,
+            losses=1,
+            games=4,
+        ),
+        SimpleNamespace(
+            season=2025,
+            innings_pitched_outs=300,
+            earned_runs=100,
+            hits_allowed=100,
+            walks_allowed=50,
+            strikeouts=100,
+            wins=10,
+            losses=5,
+            games=20,
+        ),
+    ]
+    appearance = SimpleNamespace(
+        game_date="2026-07-25",
+        opponent="LG",
+        appearance_type="선발",
+        result="승",
+        innings_pitched="6.0",
+        earned_runs=1,
+        hits_allowed=4,
+        walks_allowed=1,
+        hit_batters=0,
+        strikeouts=7,
+    )
+
+    season = _pitcher_season_analysis(stats, [appearance], 2026, date(2026, 7, 26))
+    opponent = _pitcher_opponent_analysis([appearance], "LG", date(2026, 7, 26))
+
+    assert season.games == 4
+    assert season.era == pytest.approx(3.6)
+    assert season.whip == pytest.approx(1.3)
+    assert season.strikeouts == 18
+    assert opponent.games == 1
+    assert opponent.starts == 1
+    assert opponent.era == pytest.approx(1.5)
+    assert opponent.strikeouts == 7
+
+
+def test_prediction_service_uses_player_repository_for_starting_pitcher_season_stats(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    player = SimpleNamespace(player_id=7, player_name="선발투수")
+    season_stat = SimpleNamespace(
+        season=2026,
+        innings_pitched_outs=30,
+        earned_runs=4,
+        hits_allowed=10,
+        walks_allowed=3,
+        strikeouts=18,
+        wins=2,
+        losses=1,
+        games=4,
+    )
+
+    class FakePlayerRepository:
+        def find_pitcher(self, player_name: str, team_code: str, season: int):
+            return player
+
+        def list_pitching_seasons(self, player_id: int):
+            return [season_stat]
+
+    monkeypatch.setattr(
+        "app.services.prediction.kbo_game_log_client.pitching_appearances",
+        lambda player_id, season: [],
+    )
+    service = GamePredictionService(
+        FakePredictionRepository({}),
+        FakePredictionClient(_service()._client.game, {}),
+        FakePlayerRepository(),
+    )
+
+    result = service._starting_pitcher(
+        "선발투수", "SS", "LG", 2026, date(2026, 7, 26)
+    )
+
+    assert result.status == "available"
+    assert result.season is not None
+    assert result.season.era == pytest.approx(3.6)
 
 
 class FakePredictionRepository:

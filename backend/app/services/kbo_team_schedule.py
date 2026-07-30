@@ -20,8 +20,16 @@ from app.services.kbo_game_log import KBO_BASE_URL, USER_AGENT
 SCHEDULE_PATH = "/Schedule/Schedule.aspx"
 SCHEDULE_API_PATH = "/ws/Schedule.asmx/GetScheduleList"
 TEAM_NAMES = {
-    "SS": "삼성", "KT": "KT", "LG": "LG", "HT": "KIA", "OB": "두산",
-    "HH": "한화", "NC": "NC", "LT": "롯데", "SK": "SSG", "WO": "키움",
+    "SS": "삼성",
+    "KT": "KT",
+    "LG": "LG",
+    "HT": "KIA",
+    "OB": "두산",
+    "HH": "한화",
+    "NC": "NC",
+    "LT": "롯데",
+    "SK": "SSG",
+    "WO": "키움",
 }
 TEAM_CODES_BY_NAME = {name: code for code, name in TEAM_NAMES.items()}
 _DATE_PATTERN = re.compile(r"^(\d{2})\.(\d{2})")
@@ -70,6 +78,7 @@ class GameHitter:
     hit_by_pitch: int = 0
     sacrifice_flies: int = 0
     total_bases: int | None = None
+    home_runs: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -213,7 +222,8 @@ def parse_team_schedule_rows(
 
         play_index = next(
             (
-                index for index, cell in enumerate(cells)
+                index
+                for index, cell in enumerate(cells)
                 if isinstance(cell, dict) and cell.get("Class") == "play"
             ),
             None,
@@ -243,9 +253,7 @@ def parse_team_schedule_rows(
         game_url = f"{KBO_BASE_URL}{href_match.group(1)}" if href_match else None
         game_id_match = _GAME_ID_PATTERN.search(game_url or "")
         stadium_index = play_index + 5
-        stadium_parts = (
-            _fragment_parts(texts[stadium_index]) if stadium_index < len(texts) else []
-        )
+        stadium_parts = _fragment_parts(texts[stadium_index]) if stadium_index < len(texts) else []
         stadium = stadium_parts[0] if stadium_parts else "—"
         results.append(
             TeamGameResult(
@@ -318,9 +326,7 @@ def parse_game_day_rows(
                 f"{TEAM_CODES_BY_NAME[home_name]}0"
             )
         )
-        stadium_parts = (
-            _fragment_parts(texts[stadium_index]) if stadium_index < len(texts) else []
-        )
+        stadium_parts = _fragment_parts(texts[stadium_index]) if stadium_index < len(texts) else []
         time_parts = _fragment_parts(texts[play_index - 1]) if play_index > 0 else []
         games.append(
             _ScheduledGame(
@@ -348,9 +354,7 @@ class KboTeamScheduleClient:
         self._latest_cache = BoundedTTLCache[int, LatestGameDay](
             max_size=8, ttl_seconds=ttl_seconds
         )
-        self._day_cache = BoundedTTLCache[str, LatestGameDay](
-            max_size=64, ttl_seconds=ttl_seconds
-        )
+        self._day_cache = BoundedTTLCache[str, LatestGameDay](max_size=64, ttl_seconds=ttl_seconds)
 
     def results(self, team_code: str, season: int) -> list[TeamGameResult]:
         normalized = team_code.strip().upper()
@@ -377,8 +381,11 @@ class KboTeamScheduleClient:
                     response = client.post(
                         f"{KBO_BASE_URL}{SCHEDULE_API_PATH}",
                         data={
-                            "leId": "1", "srIdList": "0,9,6", "seasonId": str(season),
-                            "gameMonth": f"{month:02d}", "teamId": normalized,
+                            "leId": "1",
+                            "srIdList": "0,9,6",
+                            "seasonId": str(season),
+                            "gameMonth": f"{month:02d}",
+                            "teamId": normalized,
                         },
                     )
                     response.raise_for_status()
@@ -422,20 +429,24 @@ class KboTeamScheduleClient:
         for wrapped in raw_rows:
             if not isinstance(wrapped, dict) or not isinstance(wrapped.get("row"), list):
                 continue
-            results.append([
-                " ".join(_fragment_parts(str(cell.get("Text", ""))))
-                for cell in wrapped["row"]
-                if isinstance(cell, dict)
-            ])
+            results.append(
+                [
+                    " ".join(_fragment_parts(str(cell.get("Text", ""))))
+                    for cell in wrapped["row"]
+                    if isinstance(cell, dict)
+                ]
+            )
         return results
 
     @staticmethod
-    def _plate_appearance_totals(values: list[str]) -> tuple[int, int, int, int | None]:
-        """Return BB, HBP, SF and total bases when KBO PA labels are available."""
+    def _plate_appearance_totals(values: list[str]) -> tuple[int, int, int, int | None, int]:
+        """Return BB, HBP, SF, total bases and HR from KBO PA labels."""
 
-        walks = hit_by_pitch = sacrifice_flies = total_bases = 0
+        walks = hit_by_pitch = sacrifice_flies = total_bases = home_runs = 0
         hit_count = 0
-        for raw_value in values:
+        unknown = False
+        meaningful_values = [value for value in values if value.strip() not in {"", "-"}]
+        for raw_value in meaningful_values:
             value = raw_value.replace(" ", "").upper()
             if not value:
                 continue
@@ -447,6 +458,7 @@ class KboTeamScheduleClient:
                 sacrifice_flies += 1
             elif "홈런" in value or value in {"HR", "HOMERUN"}:
                 total_bases += 4
+                home_runs += 1
                 hit_count += 1
             elif "3루타" in value or value == "3B":
                 total_bases += 3
@@ -457,7 +469,42 @@ class KboTeamScheduleClient:
             elif "1루타" in value or value == "안타" or value in {"H", "1B", "SINGLE"}:
                 total_bases += 1
                 hit_count += 1
-        return walks, hit_by_pitch, sacrifice_flies, total_bases if hit_count else None
+            elif any(
+                marker in value
+                for marker in (
+                    "삼진",
+                    "낫아웃",
+                    "땅볼",
+                    "뜬공",
+                    "직선타",
+                    "병살",
+                    "야수선택",
+                    "실책",
+                    "희생번트",
+                    "파울플라이",
+                    "인필드플라이",
+                    "견제사",
+                    "주루사",
+                    "K",
+                    "SO",
+                    "GO",
+                    "FO",
+                    "LO",
+                    "DP",
+                    "FC",
+                    "E",
+                )
+            ):
+                continue
+            else:
+                unknown = True
+        return (
+            walks,
+            hit_by_pitch,
+            sacrifice_flies,
+            total_bases if meaningful_values and not unknown else None,
+            home_runs,
+        )
 
     def _team_box(
         self,
@@ -483,19 +530,27 @@ class KboTeamScheduleClient:
         ):
             if len(identity) < 3 or len(stats) < 5:
                 continue
-            walks, hit_by_pitch, sacrifice_flies, total_bases = self._plate_appearance_totals(
-                [value for value in appearances if value]
+            walks, hit_by_pitch, sacrifice_flies, total_bases, home_runs = (
+                self._plate_appearance_totals([value for value in appearances if value])
             )
-            hitters.append(GameHitter(
-                batting_order=identity[0], position=identity[1], player_name=identity[2],
-                at_bats=int(stats[0]), hits=int(stats[1]), runs_batted_in=int(stats[2]),
-                runs=int(stats[3]), batting_average=float(stats[4]),
-                plate_appearances=[value for value in appearances if value],
-                walks=walks,
-                hit_by_pitch=hit_by_pitch,
-                sacrifice_flies=sacrifice_flies,
-                total_bases=total_bases,
-            ))
+            hitters.append(
+                GameHitter(
+                    batting_order=identity[0],
+                    position=identity[1],
+                    player_name=identity[2],
+                    at_bats=int(stats[0]),
+                    hits=int(stats[1]),
+                    runs_batted_in=int(stats[2]),
+                    runs=int(stats[3]),
+                    batting_average=float(stats[4]),
+                    plate_appearances=[value for value in appearances if value],
+                    walks=walks,
+                    hit_by_pitch=hit_by_pitch,
+                    sacrifice_flies=sacrifice_flies,
+                    total_bases=total_bases,
+                    home_runs=home_runs,
+                )
+            )
 
         pitcher_group = box["arrPitcher"][index]  # type: ignore[index]
         pitcher_rows = self._rows(self._table(str(pitcher_group["table"])))
@@ -503,17 +558,27 @@ class KboTeamScheduleClient:
         for values in pitcher_rows:
             if len(values) < 17:
                 continue
-            pitchers.append(GamePitcher(
-                player_name=values[0], appearance=values[1],
-                result=None if not values[2] or values[2] == "&nbsp;" else values[2],
-                wins=int(values[3]), losses=int(values[4]), saves=int(values[5]),
-                innings_pitched=values[6], batters_faced=int(values[7]), pitches=int(values[8]),
-                at_bats=int(values[9]), hits_allowed=int(values[10]),
-                home_runs_allowed=int(values[11]), walks_and_hit_batters=int(values[12]),
-                strikeouts=int(values[13]), runs_allowed=int(values[14]),
-                earned_runs=int(values[15]),
-                earned_run_average=parse_optional_float(values[16]),
-            ))
+            pitchers.append(
+                GamePitcher(
+                    player_name=values[0],
+                    appearance=values[1],
+                    result=None if not values[2] or values[2] == "&nbsp;" else values[2],
+                    wins=int(values[3]),
+                    losses=int(values[4]),
+                    saves=int(values[5]),
+                    innings_pitched=values[6],
+                    batters_faced=int(values[7]),
+                    pitches=int(values[8]),
+                    at_bats=int(values[9]),
+                    hits_allowed=int(values[10]),
+                    home_runs_allowed=int(values[11]),
+                    walks_and_hit_batters=int(values[12]),
+                    strikeouts=int(values[13]),
+                    runs_allowed=int(values[14]),
+                    earned_runs=int(values[15]),
+                    earned_run_average=parse_optional_float(values[16]),
+                )
+            )
 
         team_totals = totals[index]
         team_result = "D"
@@ -521,10 +586,16 @@ class KboTeamScheduleClient:
         if int(team_totals[0]) != int(other_totals[0]):
             team_result = "W" if int(team_totals[0]) > int(other_totals[0]) else "L"
         return GameTeamBox(
-            team_code=code, team_name=name, result=team_result,
-            runs=int(team_totals[0]), hits=int(team_totals[1]), errors=int(team_totals[2]),
-            walks=int(team_totals[3]), innings=inning_rows[index][:max_inning],
-            hitters=hitters, pitchers=pitchers,
+            team_code=code,
+            team_name=name,
+            result=team_result,
+            runs=int(team_totals[0]),
+            hits=int(team_totals[1]),
+            errors=int(team_totals[2]),
+            walks=int(team_totals[3]),
+            innings=inning_rows[index][:max_inning],
+            hitters=hitters,
+            pitchers=pitchers,
         )
 
     def game_detail(self, game_id: str, season: int) -> TeamGameDetail:
@@ -540,8 +611,10 @@ class KboTeamScheduleClient:
             f"&gameId={game_id}&section=REVIEW"
         )
         headers = {
-            "User-Agent": USER_AGENT, "Accept-Language": "ko-KR,ko;q=0.9",
-            "X-Requested-With": "XMLHttpRequest", "Referer": main_url,
+            "User-Agent": USER_AGENT,
+            "Accept-Language": "ko-KR,ko;q=0.9",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": main_url,
         }
         form = {"leId": "1", "srId": "0", "seasonId": str(season), "gameId": game_id}
         for attempt in range(1, 4):
@@ -574,12 +647,17 @@ class KboTeamScheduleClient:
             if len(row) >= 2
         ]
         detail = TeamGameDetail(
-            game_id=game_id, game_date=str(score["G_DT"]), stadium=str(score["S_NM"]),
-            crowd=str(score["CROWD_CN"]), start_time=str(score["START_TM"]),
-            end_time=str(score["END_TM"]), duration=str(score["USE_TM"]),
+            game_id=game_id,
+            game_date=str(score["G_DT"]),
+            stadium=str(score["S_NM"]),
+            crowd=str(score["CROWD_CN"]),
+            start_time=str(score["START_TM"]),
+            end_time=str(score["END_TM"]),
+            duration=str(score["USE_TM"]),
             away=self._team_box(index=0, score=score, box=box),
             home=self._team_box(index=1, score=score, box=box),
-            key_events=events, source_url=main_url,
+            key_events=events,
+            source_url=main_url,
         )
         self._detail_cache.set(game_id, detail)
         return detail
@@ -723,9 +801,7 @@ class KboTeamScheduleClient:
                 payload = response.json()
                 rows = payload.get("rows", []) if isinstance(payload, dict) else []
                 for team_name in TEAM_NAMES.values():
-                    for game in parse_team_schedule_rows(
-                        rows, season=season, team_name=team_name
-                    ):
+                    for game in parse_team_schedule_rows(rows, season=season, team_name=team_name):
                         if date.fromisoformat(game.game_date) <= today:
                             candidate_dates.add(game.game_date)
                 if candidate_dates:
@@ -779,9 +855,7 @@ class KboTeamScheduleClient:
             game_list_response.raise_for_status()
             game_list_payload = game_list_response.json()
         rows = payload.get("rows", []) if isinstance(payload, dict) else []
-        game_list = (
-            game_list_payload.get("game", []) if isinstance(game_list_payload, dict) else []
-        )
+        game_list = game_list_payload.get("game", []) if isinstance(game_list_payload, dict) else []
         pitchers_by_game = {
             str(game.get("G_ID")): (
                 str(game.get("T_PIT_P_NM") or "").strip() or None,
@@ -821,8 +895,10 @@ class KboTeamScheduleClient:
                 continue
             away_result = home_result = None
             if game.away_score is not None and game.home_score is not None:
-                away_result = "D" if game.away_score == game.home_score else (
-                    "W" if game.away_score > game.home_score else "L"
+                away_result = (
+                    "D"
+                    if game.away_score == game.home_score
+                    else ("W" if game.away_score > game.home_score else "L")
                 )
                 home_result = "D" if away_result == "D" else ("L" if away_result == "W" else "W")
             summaries.append(
@@ -844,12 +920,20 @@ class KboTeamScheduleClient:
                         else None
                     ),
                     away=GameDayTeam(
-                        TEAM_CODES_BY_NAME[game.away_name], game.away_name,
-                        away_result, game.away_score, None, None
+                        TEAM_CODES_BY_NAME[game.away_name],
+                        game.away_name,
+                        away_result,
+                        game.away_score,
+                        None,
+                        None,
                     ),
                     home=GameDayTeam(
-                        TEAM_CODES_BY_NAME[game.home_name], game.home_name,
-                        home_result, game.home_score, None, None
+                        TEAM_CODES_BY_NAME[game.home_name],
+                        game.home_name,
+                        home_result,
+                        game.home_score,
+                        None,
+                        None,
                     ),
                     away_hitter=None,
                     away_pitcher=None,

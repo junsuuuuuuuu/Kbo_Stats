@@ -14,6 +14,8 @@ from app.core.exceptions import PredictionGameNotFoundError
 from app.models.standing import TeamStanding
 from app.schemas.prediction import (
     GamePredictionResponse,
+    PitcherOpponentAnalysis,
+    PitcherSeasonAnalysis,
     PredictionForm,
     PredictionRecord,
     PredictionScore,
@@ -21,8 +23,13 @@ from app.schemas.prediction import (
     PredictionTeamMetrics,
     StartingPitcherAnalysis,
 )
-from app.services.kbo_team_schedule import LatestGameSummary, TeamGameResult
-from app.services.recent_boxscore import RecentBoxscoreMetrics, aggregate_boxscores
+from app.services.kbo_game_log import PitchingAppearance, kbo_game_log_client
+from app.services.kbo_team_schedule import TEAM_NAMES, LatestGameSummary, TeamGameResult
+from app.services.recent_boxscore import (
+    RecentBoxscoreMetrics,
+    aggregate_boxscores,
+    innings_to_outs,
+)
 
 
 class PredictionScheduleClient(Protocol):
@@ -36,6 +43,10 @@ class PredictionScheduleClient(Protocol):
 class PredictionRepository(Protocol):
     def get_latest_standing(self, team_code: str, season: int) -> TeamStanding | None: ...
 
+    def find_pitcher(self, player_name: str, team_code: str, season: int): ...
+
+    def list_pitching_seasons(self, player_id: int): ...
+
 
 @dataclass(frozen=True)
 class _TeamInputs:
@@ -47,6 +58,10 @@ class _TeamInputs:
 
 _RECORD_PATTERN = re.compile(r"^(\d+)[-:](\d+)[-:](\d+)$")
 logger = logging.getLogger("prediction")
+
+
+def outs_to_display(outs: int) -> float:
+    return (outs // 3) + (outs % 3) / 10
 
 
 def _record(wins: int, losses: int, draws: int, status: str = "available") -> PredictionRecord:
@@ -109,7 +124,12 @@ def _metrics(
             season_win_percentage=float(standing.winning_percentage) if standing else None,
             ranking=standing.ranking if standing else None,
             recent_batting_average=boxscores.batting_average if boxscores else None,
+            recent_on_base_percentage=boxscores.on_base_percentage if boxscores else None,
+            recent_slugging_percentage=boxscores.slugging_percentage if boxscores else None,
             recent_ops=boxscores.ops if boxscores else None,
+            recent_hits_per_game=boxscores.hits_per_game if boxscores else None,
+            recent_home_runs=boxscores.home_runs if boxscores else None,
+            recent_walks=boxscores.walks if boxscores else None,
             recent_era=boxscores.era if boxscores else None,
             recent_whip=boxscores.whip if boxscores else None,
             recent_strikeouts_per_game=boxscores.strikeouts_per_game if boxscores else None,
@@ -129,13 +149,104 @@ def _metrics(
         recent_runs_against_per_game=round(runs_against, 2),
         recent_run_differential=round(runs_for - runs_against, 2),
         recent_batting_average=boxscores.batting_average if boxscores else None,
+        recent_on_base_percentage=boxscores.on_base_percentage if boxscores else None,
+        recent_slugging_percentage=boxscores.slugging_percentage if boxscores else None,
         recent_ops=boxscores.ops if boxscores else None,
+        recent_hits_per_game=boxscores.hits_per_game if boxscores else None,
+        recent_home_runs=boxscores.home_runs if boxscores else None,
+        recent_walks=boxscores.walks if boxscores else None,
         recent_era=boxscores.era if boxscores else None,
         recent_whip=boxscores.whip if boxscores else None,
         recent_strikeouts_per_game=boxscores.strikeouts_per_game if boxscores else None,
         batting_status=boxscores.batting_status if boxscores else "unavailable",
         pitching_status=boxscores.pitching_status if boxscores else "unavailable",
         status="complete" if standing else "partial",
+    )
+
+
+def _opponent_matches(value: str, team_code: str) -> bool:
+    normalized = "".join(value.split()).lower()
+    team_name = "".join(TEAM_NAMES.get(team_code, "").split()).lower()
+    return normalized in {team_code.lower(), team_name}
+
+
+def _pitcher_innings_outs(appearances: list[PitchingAppearance]) -> int:
+    return sum(innings_to_outs(appearance.innings_pitched) or 0 for appearance in appearances)
+
+
+def _pitcher_season_analysis(
+    stats: list[object],
+    appearances: list[PitchingAppearance],
+    season: int,
+    target_date: date,
+) -> PitcherSeasonAnalysis:
+    season_stats = [stat for stat in stats if getattr(stat, "season", None) == season]
+    outs = sum(int(getattr(stat, "innings_pitched_outs", 0)) for stat in season_stats)
+    earned_runs = sum(int(getattr(stat, "earned_runs", 0)) for stat in season_stats)
+    hits = sum(int(getattr(stat, "hits_allowed", 0)) for stat in season_stats)
+    walks = sum(int(getattr(stat, "walks_allowed", 0)) for stat in season_stats)
+    strikeouts = sum(int(getattr(stat, "strikeouts", 0)) for stat in season_stats)
+    wins = sum(int(getattr(stat, "wins", 0)) for stat in season_stats)
+    losses = sum(int(getattr(stat, "losses", 0)) for stat in season_stats)
+    games = sum(int(getattr(stat, "games", 0)) for stat in season_stats)
+    prior_appearances = [
+        appearance
+        for appearance in appearances
+        if date.fromisoformat(appearance.game_date) < target_date
+    ]
+    last_date = max(
+        (date.fromisoformat(appearance.game_date) for appearance in prior_appearances),
+        default=None,
+    )
+    if not season_stats and not prior_appearances:
+        return PitcherSeasonAnalysis(status="unavailable")
+    return PitcherSeasonAnalysis(
+        era=earned_runs * 27 / outs if outs else None,
+        whip=(hits + walks) * 3 / outs if outs else None,
+        innings=outs_to_display(outs) if outs else None,
+        strikeouts=strikeouts
+        if season_stats
+        else sum(item.strikeouts for item in prior_appearances),
+        walks=walks if season_stats else sum(item.walks_allowed for item in prior_appearances),
+        hits=hits if season_stats else sum(item.hits_allowed for item in prior_appearances),
+        wins=wins if season_stats else None,
+        losses=losses if season_stats else None,
+        games=games if season_stats else len(prior_appearances),
+        last_appearance_date=last_date,
+        status="available" if outs else "partial",
+    )
+
+
+def _pitcher_opponent_analysis(
+    appearances: list[PitchingAppearance], opponent_code: str, target_date: date
+) -> PitcherOpponentAnalysis:
+    matching = [
+        appearance
+        for appearance in appearances
+        if date.fromisoformat(appearance.game_date) < target_date
+        and _opponent_matches(appearance.opponent, opponent_code)
+    ]
+    if not matching:
+        return PitcherOpponentAnalysis(status="unavailable")
+    outs = _pitcher_innings_outs(matching)
+    earned_runs = sum(item.earned_runs for item in matching)
+    hits = sum(item.hits_allowed for item in matching)
+    walks = sum(item.walks_allowed + item.hit_batters for item in matching)
+    starts = sum(
+        "선발" in item.appearance_type or "start" in item.appearance_type.lower()
+        for item in matching
+    )
+    return PitcherOpponentAnalysis(
+        games=len(matching),
+        starts=starts,
+        innings=outs_to_display(outs) if outs else None,
+        era=earned_runs * 27 / outs if outs else None,
+        whip=(hits + walks) * 3 / outs if outs else None,
+        hits=hits,
+        strikeouts=sum(item.strikeouts for item in matching),
+        wins=sum(item.result in {"승", "W"} for item in matching),
+        losses=sum(item.result in {"패", "L"} for item in matching),
+        status="available" if outs else "partial",
     )
 
 
@@ -155,10 +266,16 @@ def _team_prediction(code: str, name: str, inputs: _TeamInputs) -> PredictionTea
     )
 
 
-def _probability(away: _TeamInputs, home: _TeamInputs, head_to_head: PredictionRecord):
+def _probability(
+    away: _TeamInputs,
+    home: _TeamInputs,
+    head_to_head: PredictionRecord,
+    away_pitcher: StartingPitcherAnalysis | None = None,
+    home_pitcher: StartingPitcherAnalysis | None = None,
+):
     signals: list[tuple[float, float, str]] = []
-    away_metrics = _metrics(away.standing, away.recent_results)
-    home_metrics = _metrics(home.standing, home.recent_results)
+    away_metrics = _metrics(away.standing, away.recent_results, away.recent_boxscores)
+    home_metrics = _metrics(home.standing, home.recent_results, home.recent_boxscores)
     if away.standing and home.standing:
         signals.append(
             (
@@ -240,6 +357,8 @@ def _probability(away: _TeamInputs, home: _TeamInputs, head_to_head: PredictionR
                 "최근 10경기 득실차",
             )
         )
+    if away_metrics.recent_ops is not None and home_metrics.recent_ops is not None:
+        signals.append((0.10, away_metrics.recent_ops - home_metrics.recent_ops, "최근 10경기 OPS"))
     away_home = _parse_record(away.standing.home_record if away.standing else None)
     home_away = _parse_record(home.standing.away_record if home.standing else None)
     if away_home.winning_percentage is not None and home_away.winning_percentage is not None:
@@ -248,12 +367,54 @@ def _probability(away: _TeamInputs, home: _TeamInputs, head_to_head: PredictionR
         )
     if head_to_head.winning_percentage is not None:
         signals.append((0.05, head_to_head.winning_percentage - 0.5, "상대전적"))
+    if away_pitcher and home_pitcher and away_pitcher.season and home_pitcher.season:
+        if away_pitcher.season.era is not None and home_pitcher.season.era is not None:
+            signals.append(
+                (
+                    0.10,
+                    max(-1, min(1, (home_pitcher.season.era - away_pitcher.season.era) / 5)),
+                    "선발투수 시즌 ERA",
+                )
+            )
+        if away_pitcher.season.whip is not None and home_pitcher.season.whip is not None:
+            signals.append(
+                (
+                    0.05,
+                    max(-1, min(1, (home_pitcher.season.whip - away_pitcher.season.whip) / 2)),
+                    "선발투수 시즌 WHIP",
+                )
+            )
+    if (
+        away_pitcher
+        and home_pitcher
+        and away_pitcher.vs_opponent
+        and home_pitcher.vs_opponent
+        and away_pitcher.vs_opponent.status == "available"
+        and home_pitcher.vs_opponent.status == "available"
+        and away_pitcher.vs_opponent.games >= 2
+        and home_pitcher.vs_opponent.games >= 2
+        and away_pitcher.vs_opponent.era is not None
+        and home_pitcher.vs_opponent.era is not None
+    ):
+        signals.append(
+            (
+                0.05,
+                max(-1, min(1, (home_pitcher.vs_opponent.era - away_pitcher.vs_opponent.era) / 5)),
+                "상대 구단 상대 ERA",
+            )
+        )
     if not signals:
         return 0.5, ["사용 가능한 최근 경기 데이터가 부족합니다."], 0.15
     total_weight = sum(item[0] for item in signals)
     score = sum(weight * difference for weight, difference, _ in signals) / total_weight
     probability = max(0.05, min(0.95, 0.5 + score / 2))
-    confidence_score = min(0.9, 0.20 + 0.65 * len(signals) / 7)
+    confidence_score = min(0.9, 0.20 + 0.65 * len(signals) / 10)
+    if (
+        away_pitcher
+        and home_pitcher
+        and (away_pitcher.status != "available" or home_pitcher.status != "available")
+    ):
+        confidence_score *= 0.8
     return probability, [label for _, _, label in sorted(signals, reverse=True)], confidence_score
 
 
@@ -272,9 +433,15 @@ def _find_game(client: PredictionScheduleClient, game_id: str, season: int) -> L
 
 
 class GamePredictionService:
-    def __init__(self, repository: PredictionRepository, client: PredictionScheduleClient) -> None:
+    def __init__(
+        self,
+        repository: PredictionRepository,
+        client: PredictionScheduleClient,
+        player_repository: PredictionRepository | None = None,
+    ) -> None:
         self._repository = repository
         self._client = client
+        self._player_repository = player_repository
 
     def _recent_boxscores(
         self, results: list[TeamGameResult], team_code: str, season: int
@@ -298,6 +465,48 @@ class GamePredictionService:
                         exception,
                     )
         return aggregate_boxscores(details, team_code)
+
+    def _starting_pitcher(
+        self,
+        name: str | None,
+        team_code: str,
+        opponent_code: str,
+        season: int,
+        target_date: date,
+    ) -> StartingPitcherAnalysis:
+        if not name:
+            return StartingPitcherAnalysis(status="unavailable", note="선발투수 미정")
+        player_repository = self._player_repository or self._repository
+        finder = getattr(player_repository, "find_pitcher", None)
+        if finder is None:
+            return StartingPitcherAnalysis(name=name, status="available")
+        player = finder(name, team_code, season)
+        if player is None:
+            return StartingPitcherAnalysis(
+                name=name,
+                status="unverified",
+                note="일정의 선발투수 이름과 선수 기록을 매칭하지 못했습니다.",
+            )
+        try:
+            appearances = kbo_game_log_client.pitching_appearances(player.player_id, season)
+        except Exception as exception:  # noqa: BLE001 - pitcher detail is optional
+            logger.warning(
+                "prediction_pitcher_log_failed player_id=%s error=%r",
+                player.player_id,
+                exception,
+            )
+            appearances = []
+        return StartingPitcherAnalysis(
+            name=player.player_name,
+            status="available",
+            season=_pitcher_season_analysis(
+                player_repository.list_pitching_seasons(player.player_id),
+                appearances,
+                season,
+                target_date,
+            ),
+            vs_opponent=_pitcher_opponent_analysis(appearances, opponent_code, target_date),
+        )
 
     def predict(self, game_id: str, season: int) -> GamePredictionResponse:
         game = _find_game(self._client, game_id.upper(), season)
@@ -338,7 +547,15 @@ class GamePredictionService:
         )
         away_team = _team_prediction(away_code, game.away.team_name, away_inputs)
         home_team = _team_prediction(home_code, game.home.team_name, home_inputs)
-        away_probability, reasons, confidence_score = _probability(away_inputs, home_inputs, h2h)
+        away_pitcher = self._starting_pitcher(
+            game.away_starting_pitcher, away_code, home_code, season, target_date
+        )
+        home_pitcher = self._starting_pitcher(
+            game.home_starting_pitcher, home_code, away_code, season, target_date
+        )
+        away_probability, reasons, confidence_score = _probability(
+            away_inputs, home_inputs, h2h, away_pitcher, home_pitcher
+        )
         home_probability = round(1 - away_probability, 4)
         expected = PredictionScore(
             away=round(mean(result.team_score for result in away_inputs.recent_results))
@@ -360,16 +577,8 @@ class GamePredictionService:
             stadium=game.stadium,
             away=away_team,
             home=home_team,
-            away_starting_pitcher=StartingPitcherAnalysis(
-                name=game.away_starting_pitcher,
-                status="available" if game.away_starting_pitcher else "unavailable",
-                note=None if game.away_starting_pitcher else "선발투수 미정",
-            ),
-            home_starting_pitcher=StartingPitcherAnalysis(
-                name=game.home_starting_pitcher,
-                status="available" if game.home_starting_pitcher else "unavailable",
-                note=None if game.home_starting_pitcher else "선발투수 미정",
-            ),
+            away_starting_pitcher=away_pitcher,
+            home_starting_pitcher=home_pitcher,
             head_to_head=h2h,
             away_win_probability=round(away_probability, 4),
             home_win_probability=home_probability,
