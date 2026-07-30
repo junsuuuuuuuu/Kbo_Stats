@@ -404,15 +404,14 @@ main { min-height: calc(100vh - 48px); }
 .prediction-team small { color: var(--muted); }
 .prediction-vs { color: var(--muted); font-size: 13px; font-weight: 700; }
 .prediction-metric-grid { margin-top: 18px; }
-.prediction-columns { grid-template-columns: 1fr 1fr; }
-.prediction-reasons { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; }
-.prediction-reasons li { position: relative; padding-left: 23px; }
-.prediction-reasons li::before { content: ""; position: absolute; top: .6em; left: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-.prediction-reasons li small { display: block; margin-bottom: 3px; color: var(--accent); font-size: 10px; font-weight: 600; }
-.prediction-analysis { margin: 0; color: var(--muted); line-height: 1.8; }
 .prediction-comparison { display: grid; gap: 0; }
 .prediction-comparison-row { display: grid; grid-template-columns: 1fr 150px 1fr; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); text-align: center; font-variant-numeric: tabular-nums; }
 .prediction-comparison-row:last-child { border-bottom: 0; }
+.prediction-tabs { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+.prediction-tabs button { border: 0; border-radius: 7px; padding: 8px 13px; color: var(--muted); background: transparent; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; }
+.prediction-tabs button.active { color: var(--text); background: var(--surface); box-shadow: 0 1px 5px rgba(0,0,0,.18); }
+.metric-data-status { display: flex; justify-content: flex-end; gap: 18px; padding: 12px 0; color: var(--muted); font-size: 11px; }
+.team-metrics-panel .panel-header { align-items: center; }
 .prediction-comparison-row b { color: var(--muted); font-size: 12px; font-weight: 600; }
 .prediction-comparison-row span:first-child { text-align: right; }
 .prediction-comparison-row span:last-child { text-align: left; }
@@ -437,10 +436,12 @@ main { min-height: calc(100vh - 48px); }
   .game-prediction-page { width: calc(100% - 32px); }
   .prediction-meta { align-items: flex-start; flex-direction: column; gap: 4px; padding-inline: 20px; }
   .prediction-teams { padding-inline: 20px; }
-  .prediction-columns, .prediction-starters { grid-template-columns: 1fr; }
+  .prediction-starters { grid-template-columns: 1fr; }
   .pitcher-analysis-groups { grid-template-columns: 1fr; }
   .prediction-comparison-row { grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr); gap: 7px; font-size: 13px; }
   .prediction-comparison-row span { overflow-wrap: anywhere; }
+  .metric-data-status { flex-direction: column; align-items: flex-end; gap: 4px; }
+  .team-metrics-panel .panel-header { align-items: flex-start; gap: 14px; flex-direction: column; }
 }
 
 @media (max-width: 1100px) {

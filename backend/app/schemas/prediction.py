@@ -20,6 +20,8 @@ class PredictionForm(BaseModel):
 
 
 class PredictionTeamMetrics(BaseModel):
+    boxscore_games: int = 0
+    expected_boxscore_games: int = 0
     recent_games_count: int = 0
     recent_games_status: str = "unavailable"
     recent_win_percentage: float | None = None
@@ -38,6 +40,10 @@ class PredictionTeamMetrics(BaseModel):
     recent_era: float | None = None
     recent_whip: float | None = None
     recent_strikeouts_per_game: float | None = None
+    recent_batting_average_status: str = "unavailable"
+    recent_on_base_percentage_status: str = "unavailable"
+    recent_slugging_percentage_status: str = "unavailable"
+    recent_ops_status: str = "unavailable"
     batting_status: str = "unavailable"
     pitching_status: str = "unavailable"
     status: str = "partial"

@@ -16,6 +16,26 @@ def test_plate_appearance_parser_distinguishes_zero_bases_from_unknown_events():
     assert parser._plate_appearance_totals(["미확인 코드"])[3] is None
 
 
+def test_plate_appearance_parser_reads_official_korean_hit_labels():
+    parser = KboTeamScheduleClient()
+
+    result = parser._plate_appearance_totals_v3(
+        ["\u0031\ub8e8\ud0c0", "\u0032\ub8e8\ud0c0", "\ud648\ub7f0", "\ubcfc\ub137"]
+    )
+
+    assert result == (1, 0, 0, 7, 1, 1, 0)
+
+
+def test_plate_appearance_parser_reads_compact_kbo_outcomes_without_losing_total_bases():
+    parser = KboTeamScheduleClient()
+
+    result = parser._plate_appearance_totals_v4(
+        ["\uc911\uc548", "\uc88c2", "\uc720\ub545", "\uc6b0\uc2e4"]
+    )
+
+    assert result == (0, 0, 0, 3, 0, 1, 0)
+
+
 def test_parse_team_schedule_returns_completed_games_and_skips_future_games() -> None:
     rows = [
         {
@@ -31,7 +51,11 @@ def test_parse_team_schedule_returns_completed_games_and_skips_future_games() ->
                     "<a href='/Schedule/GameCenter/Main.aspx?gameDate=20260701"
                     "&gameId=20260701SKHT0&section=REVIEW'>리뷰</a>"
                 ),
-                _cell(""), _cell(""), _cell(""), _cell("광주"), _cell("-"),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell("광주"),
+                _cell("-"),
             ]
         },
         {
@@ -60,13 +84,18 @@ def test_parse_team_schedule_preserves_rowspan_date_for_doubleheader() -> None:
     rows = [
         {
             "row": [
-                _cell("06.21(일)", "day"), _cell("14:00", "time"),
+                _cell("06.21(일)", "day"),
+                _cell("14:00", "time"),
                 _cell(
                     "<span>두산</span><em><span>2</span><span>vs</span>"
                     "<span>3</span></em><span>LG</span>",
                     "play",
                 ),
-                _cell(""), _cell(""), _cell(""), _cell(""), _cell("잠실"),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell("잠실"),
             ]
         },
         {
@@ -77,7 +106,11 @@ def test_parse_team_schedule_preserves_rowspan_date_for_doubleheader() -> None:
                     "<span>1</span></em><span>LG</span>",
                     "play",
                 ),
-                _cell(""), _cell(""), _cell(""), _cell(""), _cell("잠실"),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell("잠실"),
             ]
         },
     ]
@@ -89,18 +122,23 @@ def test_parse_team_schedule_preserves_rowspan_date_for_doubleheader() -> None:
 
 
 def test_parse_game_day_rows_includes_future_schedule() -> None:
-    rows = [{
-        "row": [
-            _cell("07.22(수)", "day"),
-            _cell("18:30", "time"),
-            _cell("<span>NC</span><em><span>vs</span></em><span>LG</span>", "play"),
-            _cell(
-                "<a href='/Schedule/GameCenter/Main.aspx?gameDate=20260722"
-                "&gameId=20260722NCLG0&section=START_PIT'>프리뷰</a>"
-            ),
-            _cell(""), _cell(""), _cell(""), _cell("잠실"),
-        ]
-    }]
+    rows = [
+        {
+            "row": [
+                _cell("07.22(수)", "day"),
+                _cell("18:30", "time"),
+                _cell("<span>NC</span><em><span>vs</span></em><span>LG</span>", "play"),
+                _cell(
+                    "<a href='/Schedule/GameCenter/Main.aspx?gameDate=20260722"
+                    "&gameId=20260722NCLG0&section=START_PIT'>프리뷰</a>"
+                ),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell("잠실"),
+            ]
+        }
+    ]
 
     games = parse_game_day_rows(rows, season=2026, target_date="2026-07-22")
 
@@ -113,15 +151,21 @@ def test_parse_game_day_rows_includes_future_schedule() -> None:
 
 
 def test_parse_game_day_rows_keeps_rainout_without_review_link() -> None:
-    rows = [{
-        "row": [
-            _cell("04.09(목)", "day"),
-            _cell("18:30", "time"),
-            _cell("<span>키움</span><em><span>vs</span></em><span>두산</span>", "play"),
-            _cell("", "relay"),
-            _cell(""), _cell(""), _cell(""), _cell("잠실"), _cell("우천취소"),
-        ]
-    }]
+    rows = [
+        {
+            "row": [
+                _cell("04.09(목)", "day"),
+                _cell("18:30", "time"),
+                _cell("<span>키움</span><em><span>vs</span></em><span>두산</span>", "play"),
+                _cell("", "relay"),
+                _cell(""),
+                _cell(""),
+                _cell(""),
+                _cell("잠실"),
+                _cell("우천취소"),
+            ]
+        }
+    ]
 
     games = parse_game_day_rows(rows, season=2026, target_date="2026-04-09")
 

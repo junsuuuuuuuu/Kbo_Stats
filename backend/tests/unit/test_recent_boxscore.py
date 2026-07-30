@@ -43,11 +43,16 @@ def _detail() -> TeamGameDetail:
 
 
 def test_official_baseball_formulas_are_used_for_recent_boxscore_metrics():
-    metrics = aggregate_boxscores([_detail()], "SS")
+    metrics = aggregate_boxscores([_detail()], "SS", expected_games=2)
 
     assert innings_to_outs("6.1") == 19
+    assert innings_to_outs("1/3") == 1
+    assert innings_to_outs("1 1/3") == 4
     assert metrics.batting_average == 0.4
     assert metrics.ops == 1.2
+    assert metrics.boxscore_games == 1
+    assert metrics.expected_games == 2
+    assert metrics.ops_status == "partial"
     assert metrics.era == 54 / 19
     assert metrics.whip == 24 / 19
     assert metrics.strikeouts_per_game == 6

@@ -79,6 +79,8 @@ class GameHitter:
     sacrifice_flies: int = 0
     total_bases: int | None = None
     home_runs: int = 0
+    doubles: int = 0
+    triples: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -506,6 +508,218 @@ class KboTeamScheduleClient:
             home_runs,
         )
 
+    @staticmethod
+    def _plate_appearance_totals_v2(
+        values: list[str],
+    ) -> tuple[int, int, int, int | None, int, int, int]:
+        """Parse KBO's Korean plate-appearance labels without lossy decoding."""
+
+        walks = hit_by_pitch = sacrifice_flies = total_bases = 0
+        home_runs = doubles = triples = 0
+        meaningful = [value for value in values if value.strip() not in {"", "-"}]
+        unknown = False
+        for raw_value in meaningful:
+            value = raw_value.replace(" ", "").upper()
+            if "볼넷" in value or value in {"BB", "四球"}:
+                walks += 1
+            elif "사구" in value or "몸에맞는공" in value or value in {"HBP", "死球"}:
+                hit_by_pitch += 1
+            elif "희생플라이" in value or value in {"SF", "犠牲フライ"}:
+                sacrifice_flies += 1
+            elif "홈런" in value or value in {"HR", "HOMERUN"}:
+                total_bases += 4
+                home_runs += 1
+            elif "3루타" in value or value == "3B":
+                total_bases += 3
+                triples += 1
+            elif "2루타" in value or value == "2B":
+                total_bases += 2
+                doubles += 1
+            elif "1루타" in value or value == "안타" or value in {"H", "1B", "SINGLE"}:
+                total_bases += 1
+            elif any(
+                marker in value
+                for marker in (
+                    "삼진",
+                    "낫아웃",
+                    "땅볼",
+                    "뜬공",
+                    "직선타",
+                    "병살",
+                    "야수선택",
+                    "실책",
+                    "희생번트",
+                    "파울플라이",
+                    "인필드플라이",
+                    "견제사",
+                    "주루사",
+                    "K",
+                    "SO",
+                    "GO",
+                    "FO",
+                    "LO",
+                    "DP",
+                    "FC",
+                    "E",
+                )
+            ):
+                continue
+            else:
+                unknown = True
+        return (
+            walks,
+            hit_by_pitch,
+            sacrifice_flies,
+            total_bases if meaningful and not unknown else None,
+            home_runs,
+            doubles,
+            triples,
+        )
+
+    @staticmethod
+    def _plate_appearance_totals_v3(
+        values: list[str],
+    ) -> tuple[int, int, int, int | None, int, int, int]:
+        """Parse the official labels using escaped Unicode literals."""
+
+        walks = hit_by_pitch = sacrifice_flies = total_bases = 0
+        home_runs = doubles = triples = 0
+        meaningful = [value for value in values if value.strip() not in {"", "-"}]
+        unknown = False
+        for raw_value in meaningful:
+            value = raw_value.replace(" ", "").upper()
+            if "\ubcfc\ub137" in value or value == "BB":
+                walks += 1
+            elif (
+                "\uc0ac\uad6c" in value
+                or "\ubab8\uc5d0\ub9de\ub294\uacf5" in value
+                or value == "HBP"
+            ):
+                hit_by_pitch += 1
+            elif "\ud76c\uc0dd\ud50c\ub77c\uc774" in value or value == "SF":
+                sacrifice_flies += 1
+            elif "\ud648\ub7f0" in value or value in {"HR", "HOMERUN"}:
+                total_bases += 4
+                home_runs += 1
+            elif "3\ub8e8\ud0c0" in value or value == "3B":
+                total_bases += 3
+                triples += 1
+            elif "2\ub8e8\ud0c0" in value or value == "2B":
+                total_bases += 2
+                doubles += 1
+            elif (
+                "1\ub8e8\ud0c0" in value
+                or value == "\uc548\ud0c0"
+                or value in {"H", "1B", "SINGLE"}
+            ):
+                total_bases += 1
+            elif any(
+                marker in value
+                for marker in (
+                    "\uc0bc\uc9c4",
+                    "\ub0ab\uc544\uc6c3",
+                    "\ub545\ubcfc",
+                    "\ub72c\uacf5",
+                    "\uc9c1\uc120\ud0c0",
+                    "\ubcd1\uc0b4",
+                    "\uc57c\uc218\uc120\ud0dd",
+                    "\uc2e4\ucc45",
+                    "\ud76c\uc0dd\ubc88\ud2b8",
+                    "\ud30c\uc6b8\ud50c\ub77c\uc774",
+                    "\uc778\ud544\ub4dc\ud50c\ub77c\uc774",
+                    "\uacac\uc81c\uc0ac",
+                    "\uc8fc\ub8e8\uc0ac",
+                    "K",
+                    "SO",
+                    "GO",
+                    "FO",
+                    "LO",
+                    "DP",
+                    "FC",
+                    "E",
+                )
+            ):
+                continue
+            else:
+                unknown = True
+        return (
+            walks,
+            hit_by_pitch,
+            sacrifice_flies,
+            total_bases if meaningful and not unknown else None,
+            home_runs,
+            doubles,
+            triples,
+        )
+
+    @staticmethod
+    def _plate_appearance_totals_v4(
+        values: list[str],
+    ) -> tuple[int, int, int, int | None, int, int, int]:
+        """Parse compact KBO outcomes such as 4구, 좌중2 and 좌중홈."""
+
+        walks = hit_by_pitch = sacrifice_flies = total_bases = 0
+        home_runs = doubles = triples = 0
+        fragments = [
+            fragment.strip()
+            for value in values
+            for fragment in value.split("/")
+            if fragment.strip() not in {"", "-"}
+        ]
+        unknown = False
+        for raw_value in fragments:
+            value = raw_value.replace(" ", "").upper()
+            if "\ubcfc\ub137" in value or value in {"BB", "4\uad6c"}:
+                walks += 1
+            elif (
+                "\uc0ac\uad6c" in value
+                or "\ubab8\uc5d0\ub9de\ub294\uacf5" in value
+                or value == "HBP"
+            ):
+                hit_by_pitch += 1
+            elif "\ud76c\uc0dd\ud50c\ub77c\uc774" in value or value in {"SF", "\ud76c\ube44"}:
+                sacrifice_flies += 1
+            elif "\ud648" in value or value in {"HR", "HOMERUN"}:
+                total_bases += 4
+                home_runs += 1
+            elif "3\ub8e8\ud0c0" in value or value.endswith("3"):
+                total_bases += 3
+                triples += 1
+            elif "2\ub8e8\ud0c0" in value or value.endswith("2"):
+                total_bases += 2
+                doubles += 1
+            elif "\uc548" in value or value in {"H", "1B", "SINGLE"}:
+                total_bases += 1
+            elif any(
+                marker in value
+                for marker in (
+                    "\uc0bc\uc9c4", "\ub0ab\uc544\uc6c3", "\ub545\ubcfc", "\ub72c\uacf5",
+                    "\uc9c1\uc120\ud0c0",
+                    "\ubcd1\uc0b4",
+                    "\uc57c\uc218\uc120\ud0dd",
+                    "\uc2e4\ucc45",
+                    "\ud76c\uc0dd\ubc88\ud2b8", "\ud76c\ubc88", "\uc2a4\ub0ab", "\uc57c\uc120",
+                    "\ud30c\uc6b8\ud50c\ub77c\uc774", "\uc778\ud544\ub4dc\ud50c\ub77c\uc774",
+                    "\uacac\uc81c\uc0ac",
+                    "\uc8fc\ub8e8\uc0ac",
+                    "K", "SO", "GO", "FO", "LO", "DP", "FC", "E",
+                )
+            ) or value.endswith(("\ub545", "\ube44", "\ud30c", "\uc9c1", "\ubcd1", "\uc2e4")):
+                continue
+            else:
+                unknown = True
+        if not fragments:
+            return (0, 0, 0, None, 0, 0, 0)
+        return (
+            walks,
+            hit_by_pitch,
+            sacrifice_flies,
+            total_bases if not unknown else None,
+            home_runs,
+            doubles,
+            triples,
+        )
+
     def _team_box(
         self,
         *,
@@ -530,15 +744,18 @@ class KboTeamScheduleClient:
         ):
             if len(identity) < 3 or len(stats) < 5:
                 continue
-            walks, hit_by_pitch, sacrifice_flies, total_bases, home_runs = (
-                self._plate_appearance_totals([value for value in appearances if value])
+            walks, hit_by_pitch, sacrifice_flies, total_bases, home_runs, doubles, triples = (
+                self._plate_appearance_totals_v4([value for value in appearances if value])
             )
+            at_bats = int(stats[0])
+            if at_bats == 0 and total_bases is None:
+                total_bases = 0
             hitters.append(
                 GameHitter(
                     batting_order=identity[0],
                     position=identity[1],
                     player_name=identity[2],
-                    at_bats=int(stats[0]),
+                    at_bats=at_bats,
                     hits=int(stats[1]),
                     runs_batted_in=int(stats[2]),
                     runs=int(stats[3]),
@@ -549,6 +766,8 @@ class KboTeamScheduleClient:
                     sacrifice_flies=sacrifice_flies,
                     total_bases=total_bases,
                     home_runs=home_runs,
+                    doubles=doubles,
+                    triples=triples,
                 )
             )
 

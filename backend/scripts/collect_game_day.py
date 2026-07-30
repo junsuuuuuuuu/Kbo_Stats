@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.database.session import SessionLocal
 from app.models.game_day import GameDaySnapshot
 from app.schemas.team import LatestGameDayResponse
+from app.services.boxscore_store import save_game_detail
 from app.services.kbo_team_schedule import kbo_team_schedule_client
 
 
@@ -31,6 +32,15 @@ def save_snapshot(session: Session, response: LatestGameDayResponse, season: int
     else:
         snapshot.source_url = values["source_url"]
         snapshot.payload = values["payload"]
+    for game in response.games:
+        if game.status != "completed" or game.detail_status != "collected":
+            continue
+        try:
+            detail = kbo_team_schedule_client.game_detail(game.game_id, season)
+            save_game_detail(session, detail, season)
+        except Exception as exception:  # noqa: BLE001 - one detail must not abort the day snapshot
+            # The schedule snapshot remains usable when a single box score fails.
+            print(f"박스스코어 저장 건너뜀: {game.game_id} ({exception})")
     session.commit()
 
 

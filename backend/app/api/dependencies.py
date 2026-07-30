@@ -8,6 +8,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db_session
+from app.repositories.boxscore import SqlAlchemyBoxscoreRepository
 from app.repositories.player import SqlAlchemyPlayerRepository
 from app.repositories.team import SqlAlchemyTeamRepository
 from app.schemas.team import LatestGameDayResponse
@@ -84,6 +85,7 @@ def get_prediction_service(session: DatabaseSession) -> GamePredictionService:
         SqlAlchemyTeamRepository(session),
         kbo_team_schedule_client,
         SqlAlchemyPlayerRepository(session),
+        SqlAlchemyBoxscoreRepository(session),
     )
 
 

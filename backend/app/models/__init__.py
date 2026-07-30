@@ -1,5 +1,6 @@
 """Alembic metadata 등록을 위한 모델 export."""
 
+from app.models.boxscore import GameBattingLine, GameBoxscoreSnapshot, GamePitchingLine
 from app.models.game_day import GameDaySnapshot
 from app.models.import_batch import DataImportBatch
 from app.models.player import Player, PlayerSourceProfile
@@ -12,6 +13,9 @@ __all__ = [
     "BattingSeasonStat",
     "DataImportBatch",
     "GameDaySnapshot",
+    "GameBattingLine",
+    "GameBoxscoreSnapshot",
+    "GamePitchingLine",
     "PitchingSeasonStat",
     "Player",
     "PlayerSourceProfile",

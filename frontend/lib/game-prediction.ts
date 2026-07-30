@@ -20,6 +20,8 @@ function normalizeRecentMetrics(metrics: GamePredictionApiResponse["away"]["metr
   const status = metrics.recent_games_status ?? metrics.recent_status ?? metrics.status;
   return {
     games: metrics.recent_games_count ?? metrics.recent_games ?? null,
+    boxscore_games: metrics.boxscore_games ?? 0,
+    expected_boxscore_games: metrics.expected_boxscore_games ?? 0,
     status: status === "complete" ? "complete" : status === "partial" ? "partial" : "unavailable",
     win_percentage: metrics.recent_win_percentage ?? null,
     runs_for_per_game: metrics.recent_runs_for_per_game,
@@ -37,6 +39,10 @@ function normalizeRecentMetrics(metrics: GamePredictionApiResponse["away"]["metr
     strikeouts_per_game: metrics.recent_strikeouts_per_game ?? null,
     batting_status: normalizeStatus(metrics.batting_status ?? status),
     pitching_status: normalizeStatus(metrics.pitching_status ?? status),
+    batting_average_status: metrics.recent_batting_average_status ?? metrics.batting_status ?? status,
+    on_base_percentage_status: metrics.recent_on_base_percentage_status ?? metrics.batting_status ?? status,
+    slugging_percentage_status: metrics.recent_slugging_percentage_status ?? metrics.batting_status ?? status,
+    ops_status: metrics.recent_ops_status ?? metrics.batting_status ?? status,
   };
 }
 

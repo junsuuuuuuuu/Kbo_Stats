@@ -2,6 +2,19 @@
 
 ## 2026-07-30
 
+### Boxscore persistence and official metric parsing
+
+- Added `game_boxscore_snapshots`, `game_batting_lines`, and `game_pitching_lines` with Alembic migration `0006_create_game_boxscores`.
+- Game-detail collection now upserts one snapshot and replaces its normalized lines, preventing duplicate rows on repeated startup syncs.
+- Prediction metrics read persisted boxscores first and fall back to the existing detail API when no stored data exists.
+- Fixed compact KBO plate-appearance parsing (`중안`, `좌2`, `유땅`, `희번`, `야선`, `실책`) so total bases and OPS are not incorrectly marked unavailable.
+- Added innings parsing for official fractional notation (`1/3`, `1 1/3`) and corrected stored pitching completeness.
+- OBP is calculated independently from total bases; SLG and OPS remain null when total-base data is genuinely incomplete.
+- Updated prediction schemas and frontend normalization to expose metric status, boxscore coverage, and recent-game counts without breaking existing response fields.
+- Prediction UI keeps team batting and pitching metrics separated in tabs and removes the redundant evidence/description cards.
+- Added regression coverage for compact KBO outcomes, fractional innings, official recent-stat formulas, and persisted metric aggregation.
+- Verified 2026-07-29: 5 snapshots, all `collected`, 0 incomplete batting/pitching lines, and repeated collection did not increase row counts.
+- Backend validation: 89 tests passed and Ruff passed.
 
 
 
@@ -30,6 +43,8 @@
 - 선발투수의 상대 구단 등판 수·선발 등판 수·이닝·ERA·WHIP·피안타·탈삼진·승패 및 표본 상태를 추가
 - 최근 OPS와 선발투수 지표가 실제 확률 계산에 반영되며 데이터 부족·미매칭 시 신뢰도를 낮춤
 - 예측 서비스에 선수 Repository를 함께 주입해 일정 선발투수와 기존 선수 분석용 시즌 투수 기록(승·패·ERA·이닝·탈삼진·볼넷·피안타)을 연결
+- 예측 화면의 팀 지표를 타격·투수 탭으로 분리하고 박스스코어 확보 상태를 팀별로 설명하도록 개선
+- 최근 박스스코어 지표에 확보 경기 수와 지표별 상태를 추가하고, 부분 확보 상태에서도 계산 가능한 AVG·OBP·SLG·OPS를 독립적으로 반환
 
 ### 변경
 - FastAPI 시작 시 서버를 차단하지 않는 백그라운드 경기 일정 동기화 추가

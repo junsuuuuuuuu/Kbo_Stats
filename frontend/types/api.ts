@@ -375,6 +375,8 @@ export interface GamePredictionComparison {
 
 export interface RecentTeamMetrics {
   games: number | null;
+  boxscore_games: number;
+  expected_boxscore_games: number;
   status: "complete" | "partial" | "unavailable";
   win_percentage: number | null;
   runs_for_per_game: number | null;
@@ -392,6 +394,10 @@ export interface RecentTeamMetrics {
   strikeouts_per_game: number | null;
   batting_status: "complete" | "partial" | "unavailable";
   pitching_status: "complete" | "partial" | "unavailable";
+  batting_average_status: string;
+  on_base_percentage_status: string;
+  slugging_percentage_status: string;
+  ops_status: string;
 }
 
 export interface SeasonPitchingMetrics {
@@ -479,6 +485,12 @@ export interface GamePredictionApiTeam {
     recent_hits_per_game?: number | null;
     recent_home_runs?: number | null;
     recent_walks?: number | null;
+    boxscore_games?: number;
+    expected_boxscore_games?: number;
+    recent_batting_average_status?: string;
+    recent_on_base_percentage_status?: string;
+    recent_slugging_percentage_status?: string;
+    recent_ops_status?: string;
     batting_status?: string;
     pitching_status?: string;
     status: string;

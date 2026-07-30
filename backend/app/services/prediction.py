@@ -48,6 +48,12 @@ class PredictionRepository(Protocol):
     def list_pitching_seasons(self, player_id: int): ...
 
 
+class PredictionBoxscoreRepository(Protocol):
+    def recent_metrics(
+        self, game_ids: list[str], team_code: str, expected_games: int
+    ) -> RecentBoxscoreMetrics: ...
+
+
 @dataclass(frozen=True)
 class _TeamInputs:
     standing: TeamStanding | None
@@ -121,9 +127,21 @@ def _metrics(
     recent_record = _record_from_results(recent)
     if not recent:
         return PredictionTeamMetrics(
+            boxscore_games=boxscores.boxscore_games if boxscores else 0,
+            expected_boxscore_games=boxscores.expected_games if boxscores else 0,
             season_win_percentage=float(standing.winning_percentage) if standing else None,
             ranking=standing.ranking if standing else None,
             recent_batting_average=boxscores.batting_average if boxscores else None,
+            recent_batting_average_status=boxscores.batting_average_status
+            if boxscores
+            else "unavailable",
+            recent_on_base_percentage_status=boxscores.on_base_percentage_status
+            if boxscores
+            else "unavailable",
+            recent_slugging_percentage_status=boxscores.slugging_percentage_status
+            if boxscores
+            else "unavailable",
+            recent_ops_status=boxscores.ops_status if boxscores else "unavailable",
             recent_on_base_percentage=boxscores.on_base_percentage if boxscores else None,
             recent_slugging_percentage=boxscores.slugging_percentage if boxscores else None,
             recent_ops=boxscores.ops if boxscores else None,
@@ -140,6 +158,8 @@ def _metrics(
     runs_for = mean(result.team_score for result in recent)
     runs_against = mean(result.opponent_score for result in recent)
     return PredictionTeamMetrics(
+        boxscore_games=boxscores.boxscore_games if boxscores else 0,
+        expected_boxscore_games=boxscores.expected_games if boxscores else 0,
         recent_games_count=len(recent),
         recent_games_status="complete" if len(recent) == 10 else "partial",
         recent_win_percentage=recent_record.winning_percentage,
@@ -149,6 +169,16 @@ def _metrics(
         recent_runs_against_per_game=round(runs_against, 2),
         recent_run_differential=round(runs_for - runs_against, 2),
         recent_batting_average=boxscores.batting_average if boxscores else None,
+        recent_batting_average_status=boxscores.batting_average_status
+        if boxscores
+        else "unavailable",
+        recent_on_base_percentage_status=boxscores.on_base_percentage_status
+        if boxscores
+        else "unavailable",
+        recent_slugging_percentage_status=boxscores.slugging_percentage_status
+        if boxscores
+        else "unavailable",
+        recent_ops_status=boxscores.ops_status if boxscores else "unavailable",
         recent_on_base_percentage=boxscores.on_base_percentage if boxscores else None,
         recent_slugging_percentage=boxscores.slugging_percentage if boxscores else None,
         recent_ops=boxscores.ops if boxscores else None,
@@ -438,15 +468,23 @@ class GamePredictionService:
         repository: PredictionRepository,
         client: PredictionScheduleClient,
         player_repository: PredictionRepository | None = None,
+        boxscore_repository: PredictionBoxscoreRepository | None = None,
     ) -> None:
         self._repository = repository
         self._client = client
         self._player_repository = player_repository
+        self._boxscore_repository = boxscore_repository
 
     def _recent_boxscores(
         self, results: list[TeamGameResult], team_code: str, season: int
     ) -> RecentBoxscoreMetrics:
         game_ids = [result.game_id for result in results if result.game_id]
+        if self._boxscore_repository is not None and game_ids:
+            stored = self._boxscore_repository.recent_metrics(
+                game_ids, team_code, len(results)
+            )
+            if stored.boxscore_games:
+                return stored
         details = []
         with ThreadPoolExecutor(max_workers=3) as executor:
             futures = {
@@ -464,7 +502,7 @@ class GamePredictionService:
                         team_code,
                         exception,
                     )
-        return aggregate_boxscores(details, team_code)
+        return aggregate_boxscores(details, team_code, expected_games=len(results))
 
     def _starting_pitcher(
         self,
