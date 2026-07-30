@@ -5,7 +5,7 @@
 ![Project status](https://img.shields.io/badge/status-in%20progress-orange)
 ![Started](https://img.shields.io/badge/started-2026--07--19-blue)
 
-이 프로젝트는 2026년 7월 19일에 시작한 개인 프로젝트이며 현재 진행 중입니다. KBO 공식 기록을 수집·정제·적재하고, FastAPI와 Next.js를 통해 검색·비교·예측·추천 기능으로 제공하는 것을 목표로 합니다.
+이 프로젝트는 2026년 7월 19일에 시작한 개인 프로젝트이며 현재 진행 중입니다. KBO 공식 기록을 수집·정제·적재하고, FastAPI와 Next.js를 통해 검색·비교·예측·추천 기능으로 제공합니다.
 
 ## 📌 프로젝트 소개
 
@@ -29,12 +29,7 @@
 
 ## 🎬 시연
 
-> 실제 GIF·스크린샷·영상은 아직 저장소에 없습니다. 자료 추가 후 아래 경로를 연결합니다.
-
-![서비스 시연 GIF](images/demo.gif)
-
-- 시연 영상: [추가 필요]
-- 온라인 배포 주소: [추가 필요]
+현재 저장소에는 시연 GIF·스크린샷·온라인 배포 주소를 포함하지 않습니다. 포트폴리오 자료는 별도로 제공할 예정입니다.
 
 ## 🧰 기술 스택
 
@@ -49,8 +44,8 @@
 | ML | scikit-learn, LightGBM, XGBoost, TabPFN, SHAP | 예측·추천·설명 |
 | Database | MySQL 8.0, PyMySQL | 기록·스냅샷·모델 메타데이터 |
 | Infra | Docker, Docker Compose | 로컬 컨테이너 구성 |
-| Deployment 설정 | Vercel, Railway, Render | 배포 설정 |
-| CI | GitHub Actions | 경기 일정 수집 자동화 |
+| Deployment 설정 | Vercel, Railway, Render | 배포 설정 문서·설정 파일 |
+| CI·수집 자동화 | GitHub Actions | 테스트와 경기 일정·일일 데이터 수집 workflow |
 
 ## ✨ 주요 기능
 
@@ -82,6 +77,10 @@
 
 구단별 1군 등록 로스터, 등록·말소 변경, 최신 전적, 경기 일정, 경기별 결과와 박스스코어를 제공합니다. KBO 경기 데이터는 날짜별 snapshot으로 저장합니다.
 
+### 경기 예측 분석
+
+예정 경기의 경기 ID를 기준으로 승리 확률, 예상 스코어, 예측 근거와 팀 비교 정보를 제공합니다. 팀의 최근 10경기 흐름·득점·실점·박스스코어 지표를 사용하며, 선발투수 정보가 있으면 시즌 성적과 상대 구단 상대전적을 별도로 분석합니다. 데이터가 없거나 부분적으로 수집된 지표는 `unavailable` 또는 `partial` 상태로 구분합니다.
+
 ### 2026 시즌 수집
 
 KBO 공식 기록에서 2026 시즌 진행 기록, 구단 로스터, 팀 순위, 경기 일정을 수집합니다. 진행 중 데이터는 is_partial과 as_of_date로 완결 시즌과 구분합니다.
@@ -96,11 +95,14 @@ flowchart TD
     B --> M[ML Inference<br/>저장된 Pipeline · SHAP]
     K[KBO 공식 기록] --> C[수집·전처리 스크립트]
     C -->|CSV·JSON snapshot| D
+    K --> S[경기 일정 snapshot 동기화]
+    S --> D
+    B -. 시작 시·필요 시 .-> S
     D --> A[오프라인 학습·검증]
     A --> M
 ~~~
 
-브라우저는 DB와 모델에 직접 접근하지 않습니다. FastAPI가 HTTP 계약과 도메인 규칙의 진입점이며, 수집·전처리·학습은 오프라인 작업으로 분리합니다.
+브라우저는 DB와 모델에 직접 접근하지 않습니다. FastAPI가 HTTP 계약과 도메인 규칙의 진입점이며, 수집·전처리·학습은 웹 요청과 분리된 작업으로 실행합니다. 경기 일정 snapshot은 API 요청 시 필요에 따라 갱신되며, FastAPI 시작 시에도 최근·오늘·예정 경기 동기화를 시도합니다. GitHub Actions에는 별도의 일정 수집 workflow가 있습니다.
 
 ## 🗂️ 프로젝트 구조
 
@@ -108,14 +110,14 @@ flowchart TD
 Kbo_Stats/
 ├─ backend/
 │  ├─ app/
-│  │  ├─ api/v1/          # 선수·구단·분석·health API
-│  │  ├─ services/        # 유스케이스·도메인 규칙
+│  │  ├─ api/v1/          # 선수·구단·경기 예측·분석·health API
+│  │  ├─ services/        # 유스케이스·도메인 규칙·경기 동기화·예측
 │  │  ├─ repositories/    # SQLAlchemy 조회·저장
 │  │  ├─ models/          # SQLAlchemy 모델
 │  │  ├─ schemas/         # Pydantic 응답 계약
 │  │  ├─ ml/              # 특징·학습·추론·설명
 │  │  └─ database/        # Session·적재기
-│  ├─ scripts/            # 수집·적재·학습·검증 CLI
+│  ├─ scripts/            # 수집·적재·학습·검증·일일 갱신 CLI
 │  ├─ alembic/            # DB migration
 │  └─ tests/              # unit·API·ML 테스트
 ├─ frontend/
@@ -139,21 +141,20 @@ Kbo_Stats/
 
 - [ERD 및 DB 설계 문서](docs/database-design.md)
 
-![ERD 이미지](images/erd.png)
-
-> images/erd.png는 실제 이미지가 추가되면 표시됩니다. [추가 필요]
+ERD 이미지는 현재 첨부하지 않았으며, 위 문서의 Mermaid 설계를 기준으로 관리합니다.
 
 ## 🖥️ 주요 화면
 
 | 화면 | 설명 | 스크린샷 |
 |---|---|---|
-| 홈 / | KBO 경기 일정·결과와 현재 가치 랭킹 | images/screenshots/home.png [추가 필요] |
-| 선수 검색 /players | 이름·역할·시즌·팀 검색 | images/screenshots/players.png [추가 필요] |
-| 선수 상세 /players/{id} | 기록·예측·성장곡선·전성기·유사 선수 | images/screenshots/player-detail.png [추가 필요] |
-| 조건 검색 /discover | OPS·OBP·SLG·홈런·ERA·탈삼진 조건 탐색 | images/screenshots/discover.png [추가 필요] |
-| 가치 랭킹 /rankings | 시즌·역할·팀별 AI 랭킹 | images/screenshots/rankings.png [추가 필요] |
-| 선수 비교 /compare | 두 선수 Radar·Line Chart 비교 | images/screenshots/compare.png [추가 필요] |
-| 구단 정보 /teams | 구단·로스터·전적·일정 | images/screenshots/teams.png [추가 필요] |
+| 홈 / | KBO 경기 일정·결과와 현재 가치 랭킹 | 미첨부 |
+| 선수 검색 /players | 이름·역할·시즌·팀 검색 | 미첨부 |
+| 선수 상세 /players/{id} | 기록·예측·성장곡선·전성기·유사 선수 | 미첨부 |
+| 조건 검색 /discover | OPS·OBP·SLG·홈런·ERA·탈삼진 조건 탐색 | 미첨부 |
+| 가치 랭킹 /rankings | 시즌·역할·팀별 AI 랭킹 | 미첨부 |
+| 선수 비교 /compare | 두 선수 Radar·Line Chart 비교 | 미첨부 |
+| 구단 정보 /teams | 구단·로스터·전적·일정 | 별도 제공 |
+| 경기 예측 /games/{game_id}/prediction | 승리 확률·예상 스코어·팀 지표·선발투수 분석 | 별도 제공 |
 
 ## 🧠 기술적 도전
 
@@ -164,6 +165,10 @@ Kbo_Stats/
 ### 외부 수집과 사용자 요청 분리
 
 KBO 페이지를 매번 사용자 요청에서 직접 호출하면 지연과 외부 장애가 화면에 전파됩니다. 경기 일정·결과를 game_day_snapshots에 저장하고 저장 데이터를 우선 조회하며, 필요한 경우 최신 데이터를 수집해 저장합니다.
+
+### 경기 예측 데이터 기준
+
+예측 대상 경기일 이후의 경기 결과가 예측에 섞이지 않도록 경기일 이전에 종료된 경기만 사용합니다. 팀 흐름은 최근 최대 10경기 기준으로 계산하고, 박스스코어가 확보된 경기만 타격·투수 세부 지표에 사용합니다. 선발투수는 시즌 전체 기록과 상대 구단 상대전적을 별도로 조회하며, 상대전적 표본이 없거나 부족하면 해당 지표를 예측에서 제외하거나 신뢰도를 낮춥니다.
 
 ### 계층형 Backend
 
@@ -251,6 +256,16 @@ KBO 원본 player_id를 내부 식별자로 사용하고, 검색 결과에 생�
 
 현재 기록 조회와 모델 학습 데이터의 사용 목적을 분리했습니다.
 
+### 5. 경기 상세·박스스코어 일부 수집 실패
+
+#### 문제
+
+최근 10경기 중 일부 경기의 상세 박스스코어를 조회하지 못하면 타격·투수 세부 지표의 표본 수가 실제 최근 경기 수보다 작아질 수 있습니다.
+
+#### 해결 과정
+
+최근 경기 목록과 박스스코어를 분리해 조회하고, 확보한 경기 수와 기대 경기 수를 응답합니다. 지표를 계산할 수 없을 때 임의의 0을 반환하지 않고 `null`과 `unavailable` 또는 `partial` 상태를 반환합니다.
+
 ## 📈 성능 및 품질 개선
 
 서비스 평균 latency, 동시 요청 처리량, cache hit ratio는 아직 별도 벤치마크하지 않았습니다. [추가 필요]
@@ -261,8 +276,8 @@ KBO 원본 player_id를 내부 식별자로 사용하고, 검색 결과에 생�
 | 적재 안정성 | SHA-256 batch, transaction rollback | 동일 hash 중복 적재 방지 |
 | 스냅샷 조회 | 날짜별 JSON snapshot | 외부 수집 장애 시 fallback |
 | ML 재현성 | pipeline·artifact checksum·metadata | checksum validation 통과 |
-| Backend 품질 | Ruff, Pytest, MySQL smoke test | Pytest 37개 통과, 실패 0 |
-| Frontend 품질 | TypeScript, ESLint, Vitest, build | Vitest 2개 통과, 실패 0 |
+| Backend 품질 | Ruff, Pytest, MySQL smoke test | CI에서 Ruff·Pytest 실행 |
+| Frontend 품질 | TypeScript, ESLint, Vitest, build | CI에서 typecheck·lint·test·build 실행 |
 | 데이터 규모 | 1982~2025 완결 시즌 | 선수 3,506명, 타격 9,703행, 투구 7,625행 |
 
 적용한 설계상 최적화는 목록 API page/page_size 제한, 선수 검색용 search_name 인덱스, 타격·투구 테이블 분리, 저장 모델 artifact 재사용, 경기 snapshot 우선 조회입니다.
@@ -284,8 +299,13 @@ KBO 원본 player_id를 내부 식별자로 사용하고, 검색 결과에 생�
 | GET | /analytics/rankings?role=BATTING&season=2025 | AI 가치 랭킹 |
 | GET | /teams/{team_code}/roster?season=2026 | 구단 1군 로스터 |
 | GET | /teams/{team_code}/roster/changes?season=2026 | 등록·말소 |
+| GET | /teams?season=2026 | 구단 목록 |
+| GET | /teams/{team_code}/standing?season=2026 | 구단 최신 순위·전적 |
 | GET | /teams/games/latest?season=2026 | 최신 경기일 |
+| GET | /teams/games/day?game_date=2026-07-30&season=2026 | 특정 날짜 경기 일정·결과 |
+| GET | /teams/{team_code}/games?season=2026 | 구단 경기 결과 |
 | GET | /teams/{team_code}/games/{game_id}?season=2026 | 경기 박스스코어 |
+| GET | /predictions/games/{game_id}?season=2026 | 경기 승리 확률·예측 근거 |
 | GET | /health | Backend 상태 |
 
 ~~~bash
@@ -328,6 +348,22 @@ npm run dev
 ~~~
 
 Web은 http://localhost:3000에서 실행합니다.
+
+### 경기 일정·데이터 갱신
+
+경기 일정 snapshot만 갱신하려면 backend 디렉터리에서 실행합니다.
+
+~~~powershell
+..\\.venv\\Scripts\\python.exe -m scripts.collect_game_day
+~~~
+
+일일 갱신 스크립트는 어제·오늘 경기 snapshot을 확인하고, 완료 경기 변화가 있을 때 팀 순위와 2026 선수 기록 갱신을 실행합니다. 로스터 갱신·미래 일정 선행 수집·강제 갱신 옵션을 제공합니다.
+
+~~~powershell
+..\\.venv\\Scripts\\python.exe -m scripts.daily_kbo_update --prefetch-days 2
+~~~
+
+GitHub Actions의 `update-kbo-daily.yml`이 3~11월에 예약 실행되며, workflow_dispatch로 수동 실행할 수도 있습니다. 현재 별도의 APScheduler나 FastAPI 관리자 업데이트 API는 사용하지 않습니다.
 
 ### AI·데이터 파이프라인
 
@@ -373,9 +409,9 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 
 ## ☁️ 배포
 
-저장소에는 Vercel Frontend, Railway 또는 Render Backend, MySQL 8.0, Dockerfile·docker-compose, GitHub Actions 경기 일정 수집 workflow 설정이 포함되어 있습니다.
+저장소에는 Vercel Frontend, Railway 또는 Render Backend, MySQL 8.0, Dockerfile·docker-compose, GitHub Actions CI와 경기 일정·일일 데이터 수집 workflow 설정이 포함되어 있습니다. 이는 배포 설정과 workflow 정의를 의미하며, 현재 운영 중인 공개 서비스 URL을 포함하지는 않습니다.
 
-배포 절차는 [배포 가이드](docs/deployment.md)를 참고하세요. 실제 운영 URL과 최종 smoke test 결과는 [추가 필요]이며, Docker CLI가 없는 환경에서는 Docker image build를 완료하지 못했습니다.
+배포 절차는 [배포 가이드](docs/deployment.md)를 참고하세요. 실제 운영 URL은 아직 제공하지 않으며, Docker CLI가 없는 개발 환경에서는 Docker image build를 완료하지 못했습니다. Docker가 설치된 환경에서 최종 smoke test가 필요합니다.
 
 ## 👤 팀 소개
 
